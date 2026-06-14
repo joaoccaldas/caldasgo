@@ -9,49 +9,91 @@ interface HUDProps {
 const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel }) => {
   return (
     <>
-      {/* Top Right HUD: Compass & Weather */}
-      <div className="absolute top-12 right-4 z-[400] flex flex-col gap-4 pointer-events-auto">
-        <div className="w-12 h-12 bg-white/90 rounded-full shadow-lg flex items-center justify-center border-2 border-slate-200">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(45deg)' }}><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/></svg>
-        </div>
-        <div className="w-12 h-12 bg-white/90 rounded-full shadow-lg flex items-center justify-center border-2 border-slate-200">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-        </div>
-      </div>
-
-      {/* Bottom HUD Elements */}
-      <div className="absolute bottom-6 left-0 w-full px-4 flex justify-between items-end z-[400] pointer-events-auto">
-        
-        {/* Player Avatar */}
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 rounded-full bg-slate-800 border-4 border-white shadow-xl overflow-hidden relative">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt="Avatar Buddy" className="w-full h-full object-contain absolute bottom-[-10px] right-[-10px] opacity-80" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+      {/* Top Left: Avatar Profile & Level Progress */}
+      <div className="absolute top-12 left-4 z-[400] flex flex-col items-center pointer-events-auto">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full border-[3px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden bg-slate-800">
+            {/* Avatar Image (Pikachu placeholder for trainer face) */}
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt="Avatar" className="w-[120%] h-[120%] object-cover -ml-1 -mt-1" />
           </div>
-          <div className="bg-white px-3 py-0.5 rounded-full text-xs font-black shadow-md mt-[-10px] z-10 border border-slate-200 text-slate-800">
+          {/* Level Badge */}
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#3b82f6] text-white text-[11px] font-black px-3 py-[2px] rounded-full border border-white shadow-md z-10 whitespace-nowrap tracking-wide">
             {playerLevel}
           </div>
         </div>
+        {/* Level XP Bar */}
+        <div className="w-16 h-1.5 bg-slate-800/80 rounded-full mt-3 border border-slate-600/50 overflow-hidden backdrop-blur-sm">
+           <div className="w-3/4 h-full bg-[#fcd34d] rounded-full shadow-[0_0_5px_rgba(252,211,77,0.8)]" />
+        </div>
+      </div>
 
-        {/* Center Pokeball Button */}
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={onOpenMenu}
-          className="w-20 h-20 bg-red-500 rounded-full border-4 border-slate-800 shadow-[0_0_20px_rgba(0,0,0,0.5)] relative overflow-hidden flex items-center justify-center mb-2"
-        >
-          <div className="w-full h-1/2 bg-white absolute bottom-0 border-t-4 border-slate-800" />
-          <div className="w-8 h-8 bg-white rounded-full absolute border-4 border-slate-800 flex items-center justify-center shadow-inner">
-             <div className="w-4 h-4 bg-white rounded-full border border-slate-300 shadow-inner" />
+      {/* Top Right: Compass & Weather */}
+      <div className="absolute top-12 right-4 z-[400] flex flex-col gap-3 pointer-events-auto items-end">
+        {/* Compass */}
+        <div className="w-11 h-11 bg-white/95 backdrop-blur rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.4)] flex items-center justify-center border border-slate-200/50 cursor-pointer hover:bg-slate-50 transition-colors relative overflow-hidden">
+          <div className="absolute inset-0 rounded-full border-[2px] border-slate-300 opacity-50 m-1"></div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(45deg)' }}><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/></svg>
+        </div>
+        {/* Weather */}
+        <div className="w-12 h-12 bg-[#2dd4bf]/90 backdrop-blur rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.4)] flex items-center justify-center border border-white/50 cursor-pointer hover:bg-[#2dd4bf] transition-colors mt-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/><circle cx="12" cy="12" r="4"/></svg>
+        </div>
+        {/* Campfire (Optional Map Addon) */}
+        <div className="w-10 h-10 bg-slate-800/80 backdrop-blur rounded-full shadow-lg flex items-center justify-center border border-slate-600/50 mt-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2c-1.5 2-4 4-4 8s2.5 6 4 6 4-2 4-6-2.5-6-4-8z"/><path d="M12 22v-6"/></svg>
+        </div>
+      </div>
+
+      {/* Bottom HUD: Buddy, Pokeball, Radar */}
+      <div className="absolute bottom-8 left-0 w-full px-5 flex justify-between items-end z-[400] pointer-events-none">
+        
+        {/* Bottom Left: Buddy & Quests */}
+        <div className="flex gap-3 pointer-events-auto">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full border-2 border-white shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-[#a3e635] flex items-center justify-center overflow-hidden">
+               <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="Buddy" className="w-[120%] h-[120%] object-contain" />
+            </div>
+            {/* Buddy Mood */}
+            <div className="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow border border-slate-200">
+               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
           </div>
+          <div className="flex flex-col justify-end gap-2 pb-1">
+             <div className="w-12 h-12 rounded-full bg-white/95 backdrop-blur border border-slate-200 shadow-lg flex items-center justify-center text-slate-700 hover:bg-slate-50 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h5"/><path d="M17 12h5"/><path d="M12 2v5"/><path d="M12 17v5"/><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+             </div>
+          </div>
+        </div>
+
+        {/* Center: The Pokeball Main Menu Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onOpenMenu}
+          className="w-[84px] h-[84px] bg-[#ef4444] rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.5)] border-[4px] border-slate-800 relative overflow-hidden flex items-center justify-center pointer-events-auto transform translate-y-2"
+        >
+          {/* Bottom half white */}
+          <div className="w-full h-1/2 bg-white absolute bottom-0 border-t-[4px] border-slate-800" />
+          {/* Center button */}
+          <div className="w-9 h-9 bg-white rounded-full absolute border-[4px] border-slate-800 flex items-center justify-center">
+             <div className="w-5 h-5 bg-white rounded-full border-[2px] border-slate-300 shadow-inner" />
+          </div>
+          {/* Subtle top glare */}
+          <div className="absolute top-1 right-2 w-4 h-2 bg-white/30 rounded-full rotate-45" />
         </motion.button>
 
-        {/* Nearby Radar */}
-        <div className="bg-white/90 rounded-lg shadow-lg border border-slate-200 px-3 py-2 flex items-center gap-2 mb-2 cursor-pointer hover:bg-white transition-colors">
-           <div className="w-6 h-6 opacity-50 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="nearby" /></div>
-           <div className="w-6 h-6 opacity-50 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="nearby" /></div>
-           <div className="w-6 h-6 opacity-50 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="nearby" /></div>
+        {/* Bottom Right: Nearby Radar */}
+        <div className="pointer-events-auto mb-1">
+          <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg border border-slate-200 pl-3 pr-2 py-1.5 flex items-center gap-1 cursor-pointer hover:bg-white transition-colors relative overflow-hidden">
+             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="nearby" /></div>
+             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="nearby" /></div>
+             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="nearby" /></div>
+             
+             {/* Tiny green radar sweep effect overlay */}
+             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#a3e635]/20 to-transparent w-[200%] animate-[slide_3s_infinite]" />
+          </div>
         </div>
+        
       </div>
     </>
   );

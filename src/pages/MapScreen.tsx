@@ -1,196 +1,104 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import { useGeolocation } from '../hooks/useGeolocation';
-import type { Location } from '../hooks/useGeolocation';
-import { useSpawning } from '../hooks/useSpawning';
-import { usePokestops } from '../hooks/usePokestops';
-
-import EncounterScreen from '../components/EncounterScreen';
-import PokestopScreen from '../components/PokestopScreen';
+import React, { useState } from 'react';
 import HUD from '../components/HUD';
 import MainMenu from '../components/MainMenu';
-import PokedexScreen from './PokedexScreen';
-import InventoryScreen from './InventoryScreen';
+import EncounterScreen from '../components/EncounterScreen';
+import PokedexScreen from '../components/PokedexScreen';
+import InventoryScreen from '../components/InventoryScreen';
+import type { SpawnedPokemon } from '../types/index';
 
-import type { SpawnedPokemon, Pokestop } from '../types';
-import 'leaflet/dist/leaflet.css';
+interface MapScreenProps {
+  onCaught: () => void;
+}
 
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
+  const [activeOverlay, setActiveOverlay] = useState<'none' | 'menu' | 'pokedex' | 'inventory'>('none');
+  const [encounter, setEncounter] = useState<SpawnedPokemon | null>(null);
 
-const playerIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
-  iconSize: [32, 32],
-  iconAnchor: [16, 16],
-});
-
-const getPokestopIcon = (isSpinable: boolean) => new L.DivIcon({
-  className: 'bg-transparent',
-  html: `<div style="width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; background-color: ${isSpinable ? '#3b82f6' : '#a855f7'}; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 15]
-});
-
-const RecenterMap = ({ location }: { location: Location }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView([location.lat, location.lng]);
-  }, [location.lat, location.lng, map]);
-  return null;
-};
-
-// Allows tapping the map to walk when in Mock mode
-const MapTapHandler = ({ isMock, setLocation }: { isMock: boolean, setLocation: (l: Location) => void }) => {
-  useMapEvents({
-    click(e) {
-      if (isMock) {
-        setLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
+  // Fake a static spawn for the static map layout
+  // We'll place a random Pokemon on the static map image so the user can click it to encounter
+  const [mapSpawns] = useState<SpawnedPokemon[]>([
+    {
+      id: 'static-spawn-1',
+      lat: 0,
+      lng: 0,
+      pokemonId: 25,
+      spawnTime: Date.now(),
+      pokemonData: {
+        id: 25,
+        name: 'Pikachu',
+        image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
+        types: ['electric']
       }
     }
-  });
-  return null;
-};
-
-const MapScreen = () => {
-  const { location, error, isMock, setLocation } = useGeolocation();
-  const { spawnedPokemon, removeSpawn } = useSpawning(location);
-  const { pokestops, spinPokestop, isSpinable } = usePokestops(location);
-  
-  const [activeEncounter, setActiveEncounter] = useState<SpawnedPokemon | null>(null);
-  const [activePokestop, setActivePokestop] = useState<Pokestop | null>(null);
-  const [activeModal, setActiveModal] = useState<'none' | 'menu' | 'pokedex' | 'inventory'>('none');
-
-  if (error && !location) {
-    return (
-      <div className="h-full flex items-center justify-center bg-slate-900 text-white p-4 text-center">
-        <p className="text-red-400">Error accessing location: {error}</p>
-      </div>
-    );
-  }
-
-  if (!location) {
-    return (
-      <div className="h-full flex items-center justify-center bg-[#a3e4d7] text-white flex-col space-y-4">
-        <div className="w-16 h-16 bg-red-500 rounded-full border-4 border-white animate-bounce shadow-xl flex items-center justify-center relative overflow-hidden">
-           <div className="w-full h-1/2 bg-white absolute bottom-0"></div>
-           <div className="w-4 h-4 bg-white border-2 border-slate-800 rounded-full z-10"></div>
-        </div>
-        <p className="animate-pulse text-slate-800 font-bold tracking-widest uppercase">GPS Signal not found...</p>
-      </div>
-    );
-  }
+  ]);
 
   return (
-    <>
-      <div className="h-full w-full relative bg-[#a3e4d7]">
-        <MapContainer 
-          center={[location.lat, location.lng]} 
-          zoom={18} 
-          zoomControl={false}
-          className="h-full w-full z-0"
-        >
-          {/* Using a cleaner, stylized map tile similar to PoGo */}
-          <TileLayer
-            attribution='&copy; OpenStreetMap'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
-          />
-          <RecenterMap location={location} />
-          <MapTapHandler isMock={isMock} setLocation={setLocation} />
-          
-          <Marker position={[location.lat, location.lng]} icon={playerIcon}>
-            <Popup>You are here! {isMock && "(Mock Location)"}</Popup>
-          </Marker>
-
-          {spawnedPokemon.map(spawn => (
-            <Marker 
-              key={spawn.id} 
-              position={[spawn.lat, spawn.lng]}
-              icon={new L.Icon({
-                iconUrl: spawn.pokemonData.image,
-                iconSize: [64, 64],
-                iconAnchor: [32, 32]
-              })}
-              eventHandlers={{
-                click: () => setActiveEncounter(spawn)
-              }}
+    <div className="w-full h-[100dvh] relative overflow-hidden bg-sky-200">
+      
+      {/* 1:1 Static Video Game Map Background */}
+      <div 
+        className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/caldasgo/pogo_map_bg.png)' }}
+      >
+        {/* We place a clickable Pokemon directly on the map image for the demo */}
+        {mapSpawns.map(spawn => (
+          <div 
+            key={spawn.id}
+            onClick={() => setEncounter(spawn)}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[100px] w-24 h-24 flex items-center justify-center cursor-pointer hover:scale-110 active:scale-90 transition-transform z-10"
+          >
+            {/* Pulsing ring underneath */}
+            <div className="absolute inset-0 rounded-full bg-white/40 animate-ping opacity-70 border-[2px] border-white" />
+            <img 
+              src={spawn.pokemonData.image} 
+              alt={spawn.pokemonData.name} 
+              className="w-full h-full object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10"
             />
-          ))}
-
-          {pokestops.map(stop => (
-            <Marker 
-              key={stop.id} 
-              position={[stop.lat, stop.lng]}
-              icon={getPokestopIcon(isSpinable(stop))}
-              eventHandlers={{
-                click: () => setActivePokestop(stop)
-              }}
-            />
-          ))}
-        </MapContainer>
-
-        {isMock && (
-          <div className="absolute top-4 left-4 z-[400] bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white pointer-events-none">
-            GPS Error: Tap map to walk
           </div>
-        )}
-
-        {/* The HUD */}
-        {activeModal === 'none' && !activeEncounter && !activePokestop && (
-          <HUD 
-            onOpenMenu={() => setActiveModal('menu')} 
-            playerLevel={40} 
-          />
-        )}
+        ))}
       </div>
 
-      {/* Main Menu Overlay */}
-      {activeModal === 'menu' && (
+      {/* The Player Avatar in the center of the static map */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 pointer-events-none z-10">
+         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-black/30 rounded-[100%] blur-sm" />
+         <div className="w-full h-full bg-red-500 rounded-full border-[3px] border-white shadow-lg overflow-hidden flex items-center justify-center">
+            {/* Fake Trainer */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+         </div>
+      </div>
+
+      {/* Primary HUD Layer */}
+      <HUD onOpenMenu={() => setActiveOverlay('menu')} playerLevel={40} />
+
+      {/* Overlays */}
+      {activeOverlay === 'menu' && (
         <MainMenu 
-          onClose={() => setActiveModal('none')}
-          onOpenPokedex={() => setActiveModal('pokedex')}
-          onOpenInventory={() => setActiveModal('inventory')}
+          onClose={() => setActiveOverlay('none')} 
+          onOpenPokedex={() => setActiveOverlay('pokedex')}
+          onOpenInventory={() => setActiveOverlay('inventory')}
         />
       )}
 
-      {/* Full Screen Screens */}
-      {activeModal === 'pokedex' && (
-        <div className="absolute inset-0 z-[700] bg-slate-900">
-           <PokedexScreen onClose={() => setActiveModal('none')} />
-        </div>
-      )}
-      
-      {activeModal === 'inventory' && (
-        <div className="absolute inset-0 z-[700] bg-slate-900">
-           <InventoryScreen onClose={() => setActiveModal('none')} />
-        </div>
+      {activeOverlay === 'pokedex' && (
+        <PokedexScreen onClose={() => setActiveOverlay('menu')} />
       )}
 
-      {activePokestop && (
-        <PokestopScreen 
-          pokestop={activePokestop} 
-          isSpinable={isSpinable(activePokestop)}
-          onSpin={spinPokestop}
-          onClose={() => setActivePokestop(null)} 
-        />
+      {activeOverlay === 'inventory' && (
+        <InventoryScreen onClose={() => setActiveOverlay('menu')} />
       )}
 
-      {activeEncounter && (
+      {/* Encounter Screen */}
+      {encounter && (
         <EncounterScreen 
-          spawn={activeEncounter} 
-          onClose={() => setActiveEncounter(null)}
+          spawn={encounter} 
+          onClose={() => setEncounter(null)} 
           onCaught={() => {
-            removeSpawn(activeEncounter.id);
-            setActiveEncounter(null);
-          }}
+            setEncounter(null);
+            onCaught();
+          }} 
         />
       )}
-    </>
+    </div>
   );
 };
 

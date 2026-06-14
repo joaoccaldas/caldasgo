@@ -12,28 +12,52 @@ const DEFAULT_INVENTORY: Inventory = {
 
 const DEFAULT_POKEDEX: PokemonData[] = [
   {
-    id: 150,
-    name: "Mewtwo",
-    image: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png",
-    types: ["psychic"]
+    "id": 150,
+    "name": "Mewtwo",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png",
+    "types": ["psychic"]
   },
   {
-    id: 249,
-    name: "Lugia",
-    image: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/249.png",
-    types: ["psychic", "flying"]
+    "id": 201,
+    "name": "Unown",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/201.png",
+    "types": ["psychic"]
   },
   {
-    id: 384,
-    name: "Rayquaza",
-    image: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/384.png",
-    types: ["dragon", "flying"]
+    "id": 382,
+    "name": "Kyogre",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/382.png",
+    "types": ["water"]
   },
   {
-    id: 493,
-    name: "Arceus",
-    image: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/493.png",
-    types: ["normal"]
+    "id": 383,
+    "name": "Groudon",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/383.png",
+    "types": ["ground"]
+  },
+  {
+    "id": 384,
+    "name": "Rayquaza",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/384.png",
+    "types": ["dragon", "flying"]
+  },
+  {
+    "id": 800,
+    "name": "Necrozma",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/800.png",
+    "types": ["psychic"]
+  },
+  {
+    "id": 888,
+    "name": "Zacian",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/888.png",
+    "types": ["fairy"]
+  },
+  {
+    "id": 890,
+    "name": "Eternatus",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/890.png",
+    "types": ["poison", "dragon"]
   }
 ];
 
