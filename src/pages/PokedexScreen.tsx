@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getPokedex } from '../services/storage';
 import { PokemonData } from '../services/pokeapi';
 
