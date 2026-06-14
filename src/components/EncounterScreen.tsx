@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { SpawnedPokemon } from '../types';
 import { saveToPokedex } from '../services/storage';
@@ -16,6 +16,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
   const [message, setMessage] = useState(`A wild ${spawn.pokemonData.name} appeared!`);
   const [isCaught, setIsCaught] = useState(false);
   const [berryActive, setBerryActive] = useState(false);
+  const cp = useMemo(() => Math.floor(Math.random() * 2000) + 500, []);
 
   const handleUseBerry = async () => {
     if (berryActive || catching) return;
@@ -98,7 +99,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
             </svg>
             <div className="bg-slate-800/80 px-4 py-1 rounded-full border border-slate-600 shadow-md mt-4">
               <span className="text-white font-bold tracking-wider text-lg">
-                CP {Math.floor(Math.random() * 2000) + 500}
+                CP {cp}
               </span>
             </div>
           </div>

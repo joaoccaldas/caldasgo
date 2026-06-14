@@ -28,17 +28,16 @@ export const RARE_POKEMON_IDS = [
 export const fetchPokemonData = async (id: number): Promise<PokemonData | null> => {
   try {
     const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-    if (!response.ok) throw new Error('Network response was not ok');
     const data = await response.json();
-    
     return {
       id: data.id,
       name: data.name.charAt(0).toUpperCase() + data.name.slice(1),
+      // Use the official artwork for better quality
       image: data.sprites.other['official-artwork'].front_default || data.sprites.front_default,
-      types: data.types.map((t: any) => t.type.name),
+      types: data.types.map((t: { type: { name: string } }) => t.type.name),
     };
   } catch (error) {
-    console.error("Failed to fetch Pokemon:", error);
+    console.error(`Error fetching pokemon ${id}:`, error);
     return null;
   }
 };

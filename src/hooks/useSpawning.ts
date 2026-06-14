@@ -23,6 +23,24 @@ export const useSpawning = (playerLocation: Location | null) => {
   const [spawnedPokemon, setSpawnedPokemon] = useState<SpawnedPokemon[]>([]);
   const lastSpawnTime = useRef<number>(0);
 
+  const spawnRandomPokemon = async (loc: Location): Promise<SpawnedPokemon | null> => {
+    const randomId = RARE_POKEMON_IDS[Math.floor(Math.random() * RARE_POKEMON_IDS.length)];
+    const data = await fetchPokemonData(randomId);
+    
+    if (!data) return null;
+
+    const offset = getRandomOffset();
+    
+    return {
+      id: Math.random().toString(36).substring(2, 9),
+      pokemonId: randomId,
+      pokemonData: data,
+      lat: loc.lat + offset.dLat,
+      lng: loc.lng + offset.dLng,
+      spawnTime: Date.now(),
+    };
+  };
+
   useEffect(() => {
     if (!playerLocation) return;
 
@@ -52,24 +70,6 @@ export const useSpawning = (playerLocation: Location | null) => {
 
     return () => clearInterval(interval);
   }, [playerLocation]);
-
-  const spawnRandomPokemon = async (loc: Location): Promise<SpawnedPokemon | null> => {
-    const randomId = RARE_POKEMON_IDS[Math.floor(Math.random() * RARE_POKEMON_IDS.length)];
-    const data = await fetchPokemonData(randomId);
-    
-    if (!data) return null;
-
-    const offset = getRandomOffset();
-    
-    return {
-      id: Math.random().toString(36).substring(2, 9),
-      pokemonId: randomId,
-      pokemonData: data,
-      lat: loc.lat + offset.dLat,
-      lng: loc.lng + offset.dLng,
-      spawnTime: Date.now(),
-    };
-  };
 
   const removeSpawn = (spawnId: string) => {
     setSpawnedPokemon(prev => prev.filter(p => p.id !== spawnId));
