@@ -11,54 +11,16 @@ const DEFAULT_INVENTORY: Inventory = {
 };
 
 const DEFAULT_POKEDEX: PokemonData[] = [
-  {
-    "id": 150,
-    "name": "Mewtwo",
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png",
-    "types": ["psychic"]
-  },
-  {
-    "id": 201,
-    "name": "Unown",
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/201.png",
-    "types": ["psychic"]
-  },
-  {
-    "id": 382,
-    "name": "Kyogre",
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/382.png",
-    "types": ["water"]
-  },
-  {
-    "id": 383,
-    "name": "Groudon",
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/383.png",
-    "types": ["ground"]
-  },
-  {
-    "id": 384,
-    "name": "Rayquaza",
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/384.png",
-    "types": ["dragon", "flying"]
-  },
-  {
-    "id": 800,
-    "name": "Necrozma",
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/800.png",
-    "types": ["psychic"]
-  },
-  {
-    "id": 888,
-    "name": "Zacian",
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/888.png",
-    "types": ["fairy"]
-  },
-  {
-    "id": 890,
-    "name": "Eternatus",
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/890.png",
-    "types": ["poison", "dragon"]
-  }
+  { "id": 6, "name": "Charizard", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png", "types": ["fire", "flying"] },
+  { "id": 150, "name": "Mewtwo", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png", "types": ["psychic"] },
+  { "id": 201, "name": "Unown", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/201.png", "types": ["psychic"] },
+  { "id": 352, "name": "Kecleon", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/352.png", "types": ["normal"] },
+  { "id": 479, "name": "Rotom", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/479.png", "types": ["electric", "ghost"] },
+  { "id": 482, "name": "Azelf", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/482.png", "types": ["psychic"] },
+  { "id": 637, "name": "Volcarona", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/637.png", "types": ["bug", "fire"] },
+  { "id": 718, "name": "Zygarde", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/718.png", "types": ["dragon", "ground"] },
+  { "id": 745, "name": "Lycanroc", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/745.png", "types": ["rock"] },
+  { "id": 1000, "name": "Gholdengo", "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1000.png", "types": ["steel", "ghost"] },
 ];
 
 export const getInventory = async (): Promise<Inventory> => {
@@ -100,14 +62,14 @@ export const saveToPokedex = async (pokemon: PokemonData) => {
 
 export const getPokedex = async (): Promise<PokemonData[]> => {
   try {
-    const initialized = await localforage.getItem<boolean>('caldasgo_pokedex_init');
+    const initialized = await localforage.getItem<boolean>('caldasgo_pokedex_init_v2');
     let data = await localforage.getItem<PokemonData[]>(POKEDEX_KEY) || [];
     
     if (!initialized) {
-      // First time loading the app, seed with legendaries
+      // First time loading the app (or v2), seed with rarest 10
       data = [...DEFAULT_POKEDEX];
       await localforage.setItem(POKEDEX_KEY, data);
-      await localforage.setItem('caldasgo_pokedex_init', true);
+      await localforage.setItem('caldasgo_pokedex_init_v2', true);
     }
     
     return data;
