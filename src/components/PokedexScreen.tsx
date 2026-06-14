@@ -103,8 +103,14 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose }) => {
       </AnimatePresence>
 
       {/* Top Header - Authentic Red Banner */}
-      <div className="bg-[#e3350d] h-20 flex flex-col justify-end items-center pb-2 relative shadow-md z-10 shrink-0">
-         <h1 className="text-white font-black tracking-widest text-xl drop-shadow-md">POKÉDEX</h1>
+      <div 
+        className="h-20 flex flex-col justify-end items-center pb-2 relative z-10 shrink-0"
+        style={{
+          background: 'linear-gradient(to bottom, #E84A36 0%, #D23A26 100%)',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2)'
+        }}
+      >
+         <h1 className="text-white font-black tracking-[0.15em] text-xl drop-shadow-md font-sans">POKÉDEX</h1>
       </div>
 
       {/* Stats Bar */}
@@ -167,9 +173,14 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose }) => {
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={onClose}
-          className="w-14 h-14 rounded-full bg-white border-[3px] border-[#10b981] shadow-[0_4px_15px_rgba(0,0,0,0.2)] flex items-center justify-center text-[#10b981]"
+          className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white"
+          style={{
+            background: 'linear-gradient(135deg, #26C281 0%, #17A566 100%)',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.3), inset -4px -4px 10px rgba(0,0,0,0.2), inset 4px 4px 10px rgba(255,255,255,0.4)',
+            border: '4px solid #FFFFFF'
+          }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </motion.button>
       </div>
 
@@ -270,9 +281,16 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose }) => {
                </div>
 
                {/* Power Up Button */}
-               <div className="w-[85%] bg-[#10b981] rounded-full py-3 flex justify-between items-center px-6 shadow-md shadow-green-500/20 active:scale-95 transition-transform mb-4">
-                 <span className="text-white font-black tracking-widest text-lg drop-shadow-sm">POWER UP</span>
-                 <div className="flex items-center gap-4 text-white font-bold drop-shadow-sm">
+               <div 
+                 className="w-[85%] rounded-full py-3 flex justify-between items-center px-6 active:scale-95 transition-transform mb-4"
+                 style={{
+                   background: 'linear-gradient(to bottom, #26C281 0%, #1DA66C 100%)',
+                   boxShadow: '0 4px 10px rgba(38,194,129,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
+                   border: '2px solid #148A58'
+                 }}
+               >
+                 <span className="text-white font-black tracking-widest text-lg drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-sans">POWER UP</span>
+                 <div className="flex items-center gap-4 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-condensed">
                    <span>2,500</span>
                    <span>2</span>
                  </div>
