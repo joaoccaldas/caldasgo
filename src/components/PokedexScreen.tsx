@@ -195,8 +195,16 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose }) => {
           >
              {/* Gradient Background matching Pokemon type spanning full screen */}
              <div 
-                className="absolute inset-0 opacity-[0.15] z-0"
+                className="absolute inset-0 opacity-20 z-0"
                 style={{ background: `linear-gradient(to bottom, ${typeColors[selectedPokemon.types[0]] || '#ccc'} 0%, white 50%)` }}
+             />
+             {/* Holographic Net Pattern */}
+             <div 
+                className="absolute inset-0 z-0 opacity-30"
+                style={{ 
+                  backgroundImage: `url('https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokedex/Holo_NetPatternBG.png')`,
+                  backgroundSize: '150px'
+                }}
              />
 
              {/* Top Nav */}
@@ -212,12 +220,18 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose }) => {
                </div>
              </div>
 
-             {/* CP Arc Placeholder */}
+             {/* Authentic CP Arc */}
              <div className="w-full flex justify-center mt-2 z-10 relative h-12">
-               <div className="w-64 h-32 border-t-4 border-dashed border-slate-300 rounded-t-full absolute -top-8" />
-               <div className="bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200 z-10 flex items-baseline gap-1">
+               <div className="w-[280px] h-[140px] absolute -top-[40px] overflow-hidden">
+                  {/* Thick white arc with gray background */}
+                  <div className="w-full h-[280px] border-[8px] border-slate-200 rounded-full box-border" />
+                  <div className="w-full h-[280px] border-[8px] border-white rounded-full box-border absolute top-0 left-0" style={{ clipPath: 'polygon(0 0, 80% 0, 80% 100%, 0 100%)' }} />
+                  {/* White Dot indicating level */}
+                  <div className="w-4 h-4 bg-white rounded-full absolute shadow-md border border-slate-200" style={{ top: '15px', right: '45px' }} />
+               </div>
+               <div className="bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200 z-10 flex items-baseline gap-1 mt-2">
                  <span className="text-xs font-bold text-slate-500">CP</span>
-                 <span className="text-xl font-black text-slate-800">???</span>
+                 <span className="text-2xl font-black text-slate-800 tracking-tighter">1402</span>
                </div>
              </div>
 
@@ -243,7 +257,10 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose }) => {
                <div className="w-full px-8 flex justify-between items-center mb-6">
                  <div className="flex flex-col items-center flex-1 border-r border-slate-200">
                    <span className="text-lg font-black text-slate-800">??? <span className="text-xs">kg</span></span>
-                   <span className="text-[10px] font-bold text-slate-400 tracking-wider">WEIGHT</span>
+                   <div className="flex items-center gap-1 mt-1">
+                     <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokedex/ic_weight.png" alt="Weight" className="w-3 h-3 opacity-50" />
+                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">WEIGHT</span>
+                   </div>
                  </div>
                  
                  <div className="flex flex-col items-center flex-1 gap-1">
@@ -263,19 +280,22 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose }) => {
 
                  <div className="flex flex-col items-center flex-1 border-l border-slate-200">
                    <span className="text-lg font-black text-slate-800">??? <span className="text-xs">m</span></span>
-                   <span className="text-[10px] font-bold text-slate-400 tracking-wider">HEIGHT</span>
+                   <div className="flex items-center gap-1 mt-1">
+                     <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokedex/ic_height.png" alt="Height" className="w-3 h-3 opacity-50" />
+                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">HEIGHT</span>
+                   </div>
                  </div>
                </div>
 
-               {/* Stardust / Candy (Placeholders) */}
+               {/* Authentic Stardust & Candy */}
                <div className="w-full px-8 flex justify-center gap-12 mb-6">
                  <div className="flex items-center gap-2">
-                   <div className="w-6 h-6 rounded-full bg-purple-500 border-2 border-white shadow-sm" />
-                   <span className="font-black text-slate-800">2,500</span>
+                   <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/stardust_painted.png" alt="Stardust" className="w-8 h-8 drop-shadow-sm" />
+                   <span className="font-black text-slate-800 text-xl font-condensed">2,500</span>
                  </div>
                  <div className="flex items-center gap-2">
-                   <div className="w-6 h-6 rounded-full bg-orange-400 border-2 border-white shadow-sm" />
-                   <span className="font-black text-slate-800">3</span>
+                   <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-8 h-8 drop-shadow-sm" />
+                   <span className="font-black text-slate-800 text-xl font-condensed">3</span>
                  </div>
                </div>
 
@@ -289,9 +309,15 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose }) => {
                  }}
                >
                  <span className="text-white font-black tracking-widest text-lg drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-sans">POWER UP</span>
-                 <div className="flex items-center gap-4 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-condensed">
-                   <span>2,500</span>
-                   <span>2</span>
+                 <div className="flex items-center gap-3 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-condensed text-xl">
+                   <div className="flex items-center gap-1">
+                     <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/stardust_painted.png" alt="Stardust" className="w-5 h-5 drop-shadow-md" />
+                     <span>2,500</span>
+                   </div>
+                   <div className="flex items-center gap-1">
+                     <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" />
+                     <span>2</span>
+                   </div>
                  </div>
                </div>
              </div>
