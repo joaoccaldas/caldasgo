@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { useGeolocation, Location } from '../hooks/useGeolocation';
+import { useGeolocation } from '../hooks/useGeolocation';
+import type { Location } from '../hooks/useGeolocation';
 import { useSpawning } from '../hooks/useSpawning';
 import { usePokestops } from '../hooks/usePokestops';
+
 import EncounterScreen from '../components/EncounterScreen';
 import PokestopScreen from '../components/PokestopScreen';
-import { SpawnedPokemon, Pokestop } from '../types';
+import HUD from '../components/HUD';
+import MainMenu from '../components/MainMenu';
+import PokedexScreen from './PokedexScreen';
+import InventoryScreen from './InventoryScreen';
+
+import type { SpawnedPokemon, Pokestop } from '../types';
 import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet's default icon path issues
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -17,7 +23,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Create custom icons
 const playerIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
   iconSize: [32, 32],
@@ -31,9 +36,6 @@ const getPokestopIcon = (isSpinable: boolean) => new L.DivIcon({
   iconAnchor: [15, 15]
 });
 
-
-
-// Component to recenter map when location changes
 const RecenterMap = ({ location }: { location: Location }) => {
   const map = useMap();
   useEffect(() => {
@@ -42,53 +44,68 @@ const RecenterMap = ({ location }: { location: Location }) => {
   return null;
 };
 
+// Allows tapping the map to walk when in Mock mode
+const MapTapHandler = ({ isMock, setLocation }: { isMock: boolean, setLocation: (l: Location) => void }) => {
+  useMapEvents({
+    click(e) {
+      if (isMock) {
+        setLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
+      }
+    }
+  });
+  return null;
+};
+
 const MapScreen = () => {
-  const { location, error } = useGeolocation();
+  const { location, error, isMock, setLocation } = useGeolocation();
   const { spawnedPokemon, removeSpawn } = useSpawning(location);
   const { pokestops, spinPokestop, isSpinable } = usePokestops(location);
   
   const [activeEncounter, setActiveEncounter] = useState<SpawnedPokemon | null>(null);
   const [activePokestop, setActivePokestop] = useState<Pokestop | null>(null);
+  const [activeModal, setActiveModal] = useState<'none' | 'menu' | 'pokedex' | 'inventory'>('none');
 
-  if (error) {
+  if (error && !location) {
     return (
       <div className="h-full flex items-center justify-center bg-slate-900 text-white p-4 text-center">
         <p className="text-red-400">Error accessing location: {error}</p>
-        <p className="text-sm mt-2 text-slate-400">Please enable GPS to play CaldasGo.</p>
       </div>
     );
   }
 
   if (!location) {
     return (
-      <div className="h-full flex items-center justify-center bg-slate-900 text-white flex-col space-y-4">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <p className="animate-pulse">Locating GPS signal...</p>
+      <div className="h-full flex items-center justify-center bg-[#a3e4d7] text-white flex-col space-y-4">
+        <div className="w-16 h-16 bg-red-500 rounded-full border-4 border-white animate-bounce shadow-xl flex items-center justify-center relative overflow-hidden">
+           <div className="w-full h-1/2 bg-white absolute bottom-0"></div>
+           <div className="w-4 h-4 bg-white border-2 border-slate-800 rounded-full z-10"></div>
+        </div>
+        <p className="animate-pulse text-slate-800 font-bold tracking-widest uppercase">GPS Signal not found...</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="h-full w-full relative">
+      <div className="h-full w-full relative bg-[#a3e4d7]">
         <MapContainer 
           center={[location.lat, location.lng]} 
           zoom={18} 
           zoomControl={false}
           className="h-full w-full z-0"
         >
+          {/* Using a cleaner, stylized map tile similar to PoGo */}
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; OpenStreetMap'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
           />
           <RecenterMap location={location} />
+          <MapTapHandler isMock={isMock} setLocation={setLocation} />
           
-          {/* Player Marker */}
           <Marker position={[location.lat, location.lng]} icon={playerIcon}>
-            <Popup>You are here!</Popup>
+            <Popup>You are here! {isMock && "(Mock Location)"}</Popup>
           </Marker>
 
-          {/* Spawned Pokemon */}
           {spawnedPokemon.map(spawn => (
             <Marker 
               key={spawn.id} 
@@ -104,7 +121,6 @@ const MapScreen = () => {
             />
           ))}
 
-          {/* Pokestops */}
           {pokestops.map(stop => (
             <Marker 
               key={stop.id} 
@@ -117,15 +133,43 @@ const MapScreen = () => {
           ))}
         </MapContainer>
 
-        {/* Header Overlay */}
-        <div className="absolute top-0 left-0 w-full p-4 z-[400] pointer-events-none">
-          <h1 className="text-3xl font-black text-center text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-wider" style={{ WebkitTextStroke: '1px #3b82f6' }}>
-            CaldasGo
-          </h1>
-        </div>
+        {isMock && (
+          <div className="absolute top-4 left-4 z-[400] bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white pointer-events-none">
+            GPS Error: Tap map to walk
+          </div>
+        )}
+
+        {/* The HUD */}
+        {activeModal === 'none' && !activeEncounter && !activePokestop && (
+          <HUD 
+            onOpenMenu={() => setActiveModal('menu')} 
+            playerLevel={40} 
+          />
+        )}
       </div>
 
-      {/* Render Pokestop Screen */}
+      {/* Main Menu Overlay */}
+      {activeModal === 'menu' && (
+        <MainMenu 
+          onClose={() => setActiveModal('none')}
+          onOpenPokedex={() => setActiveModal('pokedex')}
+          onOpenInventory={() => setActiveModal('inventory')}
+        />
+      )}
+
+      {/* Full Screen Screens */}
+      {activeModal === 'pokedex' && (
+        <div className="absolute inset-0 z-[700] bg-slate-900">
+           <PokedexScreen onClose={() => setActiveModal('none')} />
+        </div>
+      )}
+      
+      {activeModal === 'inventory' && (
+        <div className="absolute inset-0 z-[700] bg-slate-900">
+           <InventoryScreen onClose={() => setActiveModal('none')} />
+        </div>
+      )}
+
       {activePokestop && (
         <PokestopScreen 
           pokestop={activePokestop} 
@@ -135,7 +179,6 @@ const MapScreen = () => {
         />
       )}
 
-      {/* Render Encounter Screen */}
       {activeEncounter && (
         <EncounterScreen 
           spawn={activeEncounter} 

@@ -22,7 +22,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
     const success = await consumeItem('razzBerries', 1);
     if (success) {
       setBerryActive(true);
-      setMessage(`You fed a Razz Berry to ${spawn.pokemonData.name}! It's easier to catch!`);
+      setMessage(`You fed a Razz Berry!`);
     } else {
       setMessage(`Not enough Razz Berries!`);
     }
@@ -33,17 +33,16 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
     
     const consumed = await consumeItem('pokeballs', 1);
     if (!consumed) {
-      setMessage(`You're out of Pokéballs! Spin a PokéStop to get more.`);
+      setMessage(`Out of Pokéballs!`);
       return;
     }
 
     setCatching(true);
-    setMessage('Throwing Pokeball...');
+    setMessage('');
 
     // Simulate catch mechanic delay
     await new Promise(r => setTimeout(r, 1500));
 
-    // Base rate 50%, with berry 90%
     const catchRate = berryActive ? 0.9 : 0.5;
     const success = Math.random() < catchRate;
 
@@ -56,9 +55,9 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
         onCaught();
       }, 2000);
     } else {
-      setMessage(`Oh no! The Pokemon broke free!`);
+      setMessage(`Oh no! It broke free!`);
       setCatching(false);
-      setBerryActive(false); // Berry wears off after a throw
+      setBerryActive(false); 
     }
   };
 
@@ -67,23 +66,44 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[500] bg-slate-900/95 flex flex-col items-center justify-between p-6 backdrop-blur-sm"
+      className="absolute inset-0 z-[800] overflow-hidden bg-sky-200 flex flex-col"
     >
-      <div className="w-full flex justify-between items-start mt-8">
+      {/* Grassy Background */}
+      <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-emerald-600 to-emerald-400" style={{ borderTopLeftRadius: '50% 10%', borderTopRightRadius: '50% 10%' }}></div>
+      <div className="absolute bottom-0 w-full h-24 bg-gradient-to-t from-black/50 to-transparent"></div>
+
+      {/* Top HUD */}
+      <div className="relative w-full flex justify-between items-start p-6 pt-12 z-10">
         <button 
           onClick={onClose}
-          className="bg-slate-800 p-2 rounded-full text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+          className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center text-slate-800 shadow-md"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 14h-3"/><path d="M13 10h-3"/><path d="M10 14v4"/><path d="M10 10V6"/><path d="M14 6h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-3"/><path d="M6 10h2"/><path d="M6 14h2"/></svg>
         </button>
-        <div className="bg-slate-800/80 px-4 py-1 rounded-full border border-slate-600 shadow-md">
-          <span className="text-yellow-400 font-bold uppercase tracking-wider text-sm">
-            CP {Math.floor(Math.random() * 2000) + 500}
-          </span>
+
+        {/* AR Toggle (Visual Only) */}
+        <div className="w-16 h-8 bg-white/80 rounded-full flex items-center p-1 shadow-md">
+          <div className="w-6 h-6 bg-white rounded-full shadow border border-slate-200 flex items-center justify-center text-[8px] font-bold">AR</div>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center w-full relative">
+      {/* Center Action */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10">
+        
+        {/* CP Arch */}
+        {!isCaught && (
+          <div className="absolute top-10 flex flex-col items-center">
+            <svg width="200" height="100" viewBox="0 0 200 100" className="absolute top-0 opacity-50">
+               <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="white" strokeWidth="4" />
+            </svg>
+            <div className="bg-slate-800/80 px-4 py-1 rounded-full border border-slate-600 shadow-md mt-4">
+              <span className="text-white font-bold tracking-wider text-lg">
+                CP {Math.floor(Math.random() * 2000) + 500}
+              </span>
+            </div>
+          </div>
+        )}
+
         <AnimatePresence>
           {!isCaught && (
             <motion.div
@@ -93,7 +113,6 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
                 scale: 1, 
                 y: 0, 
                 opacity: 1,
-                // Gentle floating animation
                 translateY: [-10, 10]
               }}
               exit={{ scale: 0, opacity: 0 }}
@@ -101,15 +120,17 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
                 translateY: { repeat: Infinity, duration: 2, repeatType: "mirror", ease: "easeInOut" },
                 scale: { duration: 0.5, type: "spring" }
               }}
-              className="relative w-64 h-64 flex items-center justify-center"
+              className="relative w-64 h-64 flex items-center justify-center mt-12"
             >
               {berryActive && (
                 <div className="absolute inset-0 rounded-full border-4 border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.5)] animate-pulse" />
               )}
+              {/* Fake Ground Shadow */}
+              <div className="absolute bottom-4 w-32 h-8 bg-black/20 rounded-[100%] blur-sm"></div>
               <img 
                 src={spawn.pokemonData.image} 
                 alt={spawn.pokemonData.name}
-                className="w-full h-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
+                className="w-full h-full object-contain drop-shadow-xl z-10"
               />
             </motion.div>
           )}
@@ -130,38 +151,59 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
         )}
       </div>
 
-      <div className="w-full max-w-sm mb-12">
-        <div className="bg-slate-800 rounded-2xl p-4 shadow-xl border border-slate-700 mb-6 text-center">
-          <p className="text-lg font-medium text-white">{message}</p>
+      {/* Message Box */}
+      {message && (
+        <div className="absolute bottom-32 w-full px-8 z-10">
+          <div className="bg-slate-800/90 rounded-full p-3 shadow-xl border border-slate-700 text-center">
+            <p className="text-sm font-bold text-white">{message}</p>
+          </div>
         </div>
+      )}
 
+      {/* Bottom Controls */}
+      <div className="w-full h-32 relative z-10 flex items-center justify-between px-8 pb-8">
         {!isCaught && (
-          <div className="flex gap-4">
+          <>
+            {/* Berry Button */}
             <button 
               onClick={handleUseBerry}
               disabled={catching || berryActive || inventory.razzBerries === 0}
-              className={`flex-1 py-4 rounded-xl font-bold flex flex-col items-center transition-all ${
+              className={`w-16 h-16 rounded-full flex flex-col items-center justify-center transition-all ${
                 catching || berryActive || inventory.razzBerries === 0
-                  ? 'bg-slate-800 text-slate-500 border border-slate-700'
-                  : 'bg-slate-700 text-pink-400 border border-pink-500/50 hover:bg-slate-600'
+                  ? 'bg-slate-600/50 grayscale'
+                  : 'bg-white shadow-lg border-4 border-pink-100 hover:scale-105 active:scale-95'
               }`}
             >
-              <span className="text-xs text-slate-400 mb-1">x{inventory.razzBerries}</span>
-              Berry
+              <div className="relative">
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ec4899" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                 <div className="absolute -top-2 -right-4 bg-pink-500 text-white text-[10px] font-bold px-1.5 rounded-full">{inventory.razzBerries}</div>
+              </div>
             </button>
-            <button 
+
+            {/* Throw Pokeball */}
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={handleCatch}
               disabled={catching}
-              className={`flex-[2] py-4 rounded-xl font-bold text-xl shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all flex flex-col items-center ${
-                catching 
-                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-400 hover:to-red-500 active:scale-95'
-              }`}
+              className={`w-24 h-24 rounded-full shadow-2xl relative overflow-hidden flex items-center justify-center ${catching ? 'opacity-50 cursor-not-allowed' : 'bg-red-500 border-4 border-slate-800'}`}
             >
-              <span className="text-xs text-red-200 mb-1 font-normal tracking-wide">x{inventory.pokeballs} Left</span>
-              THROW
-            </button>
-          </div>
+              {!catching && (
+                <>
+                  <div className="w-full h-1/2 bg-white absolute bottom-0 border-t-4 border-slate-800" />
+                  <div className="w-8 h-8 bg-white rounded-full absolute border-4 border-slate-800 flex items-center justify-center shadow-inner">
+                     <div className="w-4 h-4 bg-white rounded-full border border-slate-300 shadow-inner" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded-full border border-slate-600 z-10">{inventory.pokeballs}</div>
+                </>
+              )}
+            </motion.button>
+
+            {/* Camera Button (Visual) */}
+            <div className="w-16 h-16 rounded-full bg-white shadow-lg border-4 border-slate-100 flex items-center justify-center text-slate-600 opacity-80">
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            </div>
+          </>
         )}
       </div>
     </motion.div>

@@ -1,14 +1,25 @@
 import { useInventory } from '../hooks/useInventory';
+import { X } from 'lucide-react';
 
-const InventoryScreen = () => {
+interface InventoryScreenProps {
+  onClose?: () => void;
+}
+
+const InventoryScreen = ({ onClose }: InventoryScreenProps) => {
   const { inventory } = useInventory();
 
   return (
-    <div className="h-full flex flex-col bg-slate-900 text-white overflow-y-auto no-scrollbar pb-20">
-      <div className="sticky top-0 bg-slate-900/90 backdrop-blur-md p-4 z-10 border-b border-slate-800">
+    <div className="h-full flex flex-col bg-slate-900 text-white overflow-y-auto no-scrollbar pb-20 relative">
+      <div className="sticky top-0 bg-slate-900/90 backdrop-blur-md p-4 z-10 border-b border-slate-800 flex justify-between items-center">
+        <div className="w-8"></div>
         <h1 className="text-3xl font-black text-center text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-wider" style={{ WebkitTextStroke: '1px #3b82f6' }}>
           Items
         </h1>
+        {onClose ? (
+          <button onClick={onClose} className="p-2 rounded-full bg-slate-800 text-slate-300">
+            <X size={24} />
+          </button>
+        ) : <div className="w-8"></div>}
       </div>
 
       <div className="p-4 flex-1">
