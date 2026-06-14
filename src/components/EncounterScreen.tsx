@@ -1,23 +1,28 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { SpawnedPokemon } from '../types';
-import { saveToPokedex } from '../services/storage';
+import type { SpawnedPokemon, OwnedPokemon } from '../types';
+import { getPokemonImage } from '../data/pokemonDatabase';
 import { useInventory } from '../hooks/useInventory';
+
+// XP awarded for catching a Pokémon, and a bonus the first time a species is caught.
+const CATCH_XP = 100;
+const NEW_SPECIES_XP = 500;
 
 interface EncounterScreenProps {
   spawn: SpawnedPokemon;
   onClose: () => void;
-  onCaught: () => void;
+  onCaught: (pokemon: OwnedPokemon, xpGained: number) => void;
+  catchPokemon: (spawn: SpawnedPokemon) => Promise<{ pokemon: OwnedPokemon; isNewSpecies: boolean }>;
+  gainXp: (amount: number) => Promise<number>;
 }
 
-const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCaught }) => {
+const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCaught, catchPokemon, gainXp }) => {
   const { inventory, consumeItem } = useInventory();
   const [catching, setCatching] = useState(false);
   const [message, setMessage] = useState('');
   const [isCaught, setIsCaught] = useState(false);
   const [berryActive, setBerryActive] = useState(false);
-  const cp = useMemo(() => Math.floor(Math.random() * 2000) + 500, []);
-  
+
   // Catch Ring State
   const [ringScale, setRingScale] = useState(1);
   useEffect(() => {
@@ -40,7 +45,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
 
   const handleCatch = async () => {
     if (catching || isCaught) return;
-    
+
     const consumed = await consumeItem('pokeballs', 1);
     if (!consumed) {
       setMessage(`Out of Pokéballs!`);
@@ -57,30 +62,33 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
     const success = Math.random() < catchRate;
 
     if (success) {
-      setMessage(`Gotcha! ${spawn.pokemonData.name} was caught!`);
+      const { pokemon, isNewSpecies } = await catchPokemon(spawn);
+      const xpGained = CATCH_XP + (isNewSpecies ? NEW_SPECIES_XP : 0);
+      await gainXp(xpGained);
+
+      setMessage(`Gotcha! ${spawn.species.name} was caught! +${xpGained} XP`);
       setIsCaught(true);
-      await saveToPokedex(spawn.pokemonData);
-      
+
       setTimeout(() => {
-        onCaught();
+        onCaught(pokemon, xpGained);
       }, 2000);
     } else {
       setMessage(`Oh no! The Pokémon broke free!`);
       setTimeout(() => setMessage(''), 2000);
       setCatching(false);
-      setBerryActive(false); 
+      setBerryActive(false);
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="absolute inset-0 z-[800] overflow-hidden bg-sky-100 flex flex-col"
     >
       {/* 1:1 Authentic Encounter Background Image */}
-      <div 
+      <div
         className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: 'url(/caldasgo/pogo_encounter_bg.png)' }}
       />
@@ -88,7 +96,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
       {/* Top HUD: Exact Placement */}
       <div className="relative w-full flex justify-between items-start p-5 pt-12 z-10 pointer-events-auto">
         {/* Run Button (Top Left) */}
-        <button 
+        <button
           onClick={onClose}
           className="w-10 h-10 bg-slate-800/50 backdrop-blur rounded-full flex items-center justify-center text-white border border-white/30 shadow-sm"
         >
@@ -105,7 +113,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
 
       {/* Center Action */}
       <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10 -mt-10">
-        
+
         {/* CP Arch */}
         {!isCaught && (
           <div className="absolute top-0 flex flex-col items-center">
@@ -116,7 +124,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
             </svg>
             <div className="bg-slate-800/60 backdrop-blur px-5 py-1 rounded-full border border-slate-500/50 shadow-md mt-6">
               <span className="text-white font-black tracking-wider text-xl drop-shadow-md">
-                CP {cp}
+                CP {spawn.cp}
               </span>
             </div>
           </div>
@@ -133,12 +141,12 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
             >
               {/* Fake Ground Shadow */}
               <div className="absolute bottom-2 w-40 h-10 bg-black/30 rounded-[100%] blur-md"></div>
-              
-              <motion.img 
+
+              <motion.img
                 animate={{ translateY: [-10, 10] }}
                 transition={{ repeat: Infinity, duration: 2, repeatType: "mirror", ease: "easeInOut" }}
-                src={spawn.pokemonData.image} 
-                alt={spawn.pokemonData.name}
+                src={getPokemonImage(spawn.speciesId)}
+                alt={spawn.species.name}
                 className="w-[120%] h-[120%] object-contain drop-shadow-2xl z-10"
               />
 
@@ -148,13 +156,13 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
                     {/* Outer White Ring */}
                     <div className="absolute w-full h-full rounded-full border-4 border-white/60" />
                     {/* Inner Colored Shrinking Ring */}
-                    <div 
-                      className="absolute rounded-full border-4 border-green-500/80" 
-                      style={{ 
-                        width: `${ringScale * 100}%`, 
+                    <div
+                      className="absolute rounded-full border-4 border-green-500/80"
+                      style={{
+                        width: `${ringScale * 100}%`,
                         height: `${ringScale * 100}%`,
                         borderColor: ringScale < 0.5 ? '#ef4444' : ringScale < 0.8 ? '#eab308' : '#22c55e'
-                      }} 
+                      }}
                     />
                  </div>
               )}
@@ -163,7 +171,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
         </AnimatePresence>
 
         {catching && (
-          <motion.div 
+          <motion.div
             initial={{ y: 200, scale: 0 }}
             animate={{ y: isCaught ? 0 : [0, -50, 0], scale: 1, rotate: isCaught ? [0, 10, -10, 0] : 0 }}
             transition={{ duration: 0.5 }}
@@ -193,7 +201,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
           <>
             {/* Berry Button (Bottom Left) */}
             <div className="absolute left-6 bottom-8 pointer-events-auto flex flex-col items-center">
-              <button 
+              <button
                 onClick={handleUseBerry}
                 disabled={catching || berryActive || inventory.razzBerries === 0}
                 className={`w-14 h-14 rounded-full flex flex-col items-center justify-center transition-all ${
@@ -211,7 +219,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
 
             {/* Throw Pokeball (Bottom Center) */}
             <div className="absolute left-1/2 -translate-x-1/2 bottom-8 pointer-events-auto flex flex-col items-center">
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleCatch}

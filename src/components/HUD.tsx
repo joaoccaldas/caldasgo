@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 interface HUDProps {
   onOpenMenu: () => void;
   playerLevel: number;
+  xpProgress: number; // 0-1 progress toward next level
 }
 
-const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel }) => {
+const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
   return (
     <>
       {/* Top Left: Avatar Profile & Level Progress */}
@@ -23,7 +24,10 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel }) => {
         </div>
         {/* Level XP Bar */}
         <div className="w-16 h-1.5 bg-slate-800/80 rounded-full mt-3 border border-slate-600/50 overflow-hidden backdrop-blur-sm">
-           <div className="w-3/4 h-full bg-[#fcd34d] rounded-full shadow-[0_0_5px_rgba(252,211,77,0.8)]" />
+           <div
+             className="h-full bg-[#fcd34d] rounded-full shadow-[0_0_5px_rgba(252,211,77,0.8)]"
+             style={{ width: `${Math.round(xpProgress * 100)}%` }}
+           />
         </div>
       </div>
 

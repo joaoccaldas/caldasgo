@@ -5,13 +5,13 @@ import type { Inventory } from '../types';
 export const useInventory = () => {
   const [inventory, setInventory] = useState<Inventory>({ pokeballs: 0, razzBerries: 0 });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const inv = await getInventory();
     setInventory(inv);
-  };
+  }, []);
 
   useEffect(() => {
-    load();
+    getInventory().then(setInventory);
   }, []);
 
   const consumeItem = useCallback(async (item: keyof Inventory, amount: number = 1) => {

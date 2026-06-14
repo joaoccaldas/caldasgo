@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import L, { type LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import HUD from '../components/HUD';
@@ -10,10 +10,14 @@ import PokedexScreen from '../components/PokedexScreen';
 import InventoryScreen from '../components/InventoryScreen';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useSpawning } from '../hooks/useSpawning';
+import { useTrainer } from '../hooks/useTrainer';
+import { useCollection } from '../hooks/useCollection';
+import { getPokemonImage } from '../data/pokemonDatabase';
 import type { SpawnedPokemon } from '../types/index';
 
-// Leaflet marker fix
-// @ts-ignore
+// Leaflet marker fix - the default icon URLs point at bundler-relative assets
+// that don't exist, so we delete the private lookup and provide CDN URLs instead.
+// @ts-expect-error _getIconUrl is a private Leaflet implementation detail
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -29,13 +33,19 @@ const LocationUpdater = ({ center }: { center: [number, number] }) => {
   return null;
 };
 
-interface MapScreenProps {
-  onCaught: () => void;
-}
+// Helper component to capture map clicks
+const MapClickCapturer = ({ onClick }: { onClick: (e: LeafletMouseEvent) => void }) => {
+  useMapEvents({
+    click: onClick,
+  });
+  return null;
+};
 
-const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
+const MapScreen: React.FC = () => {
   const { location, isMock, setLocation } = useGeolocation();
-  const { spawnedPokemon } = useSpawning(location);
+  const { spawnedPokemon, removeSpawn } = useSpawning(location);
+  const trainer = useTrainer();
+  const collection = useCollection();
   const [activeOverlay, setActiveOverlay] = useState<'none' | 'menu' | 'pokedex' | 'inventory'>('none');
   const [encounter, setEncounter] = useState<SpawnedPokemon | null>(null);
 
@@ -50,7 +60,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
   }
 
   // To simulate walking if mock is true
-  const handleMapClick = (e: any) => {
+  const handleMapClick = (e: LeafletMouseEvent) => {
     if (isMock) {
       setLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
     }
@@ -58,13 +68,13 @@ const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
 
   return (
     <div className="w-full h-[100dvh] relative overflow-hidden bg-sky-200">
-      
+
       {/* The 100% Authentic PoGo Map CSS Filter wrapper */}
       {/* We apply sepia/hue-rotate to force Google/Carto maps into the vivid PoGo green/blue aesthetic */}
       <div className="absolute inset-0 z-0 pogo-map-filter">
-        <MapContainer 
-          center={[location.lat, location.lng]} 
-          zoom={18} 
+        <MapContainer
+          center={[location.lat, location.lng]}
+          zoom={18}
           zoomControl={false}
           className="w-full h-full"
         >
@@ -74,7 +84,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
             attribution=""
           />
           <LocationUpdater center={[location.lat, location.lng]} />
-          
+
           {/* Capture map clicks for mock walking */}
           <MapClickCapturer onClick={handleMapClick} />
 
@@ -84,7 +94,7 @@ const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
               html: `
                 <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4">
                   <div class="absolute inset-0 rounded-full bg-white/40 animate-ping opacity-70 border-[2px] border-white"></div>
-                  <img src="${spawn.pokemonData.image}" class="w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" />
+                  <img src="${getPokemonImage(spawn.speciesId)}" alt="${spawn.species.name}" class="w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" />
                 </div>
               `,
               className: 'custom-pokemon-icon',
@@ -92,9 +102,9 @@ const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
             });
 
             return (
-              <Marker 
-                key={spawn.id} 
-                position={[spawn.lat, spawn.lng]} 
+              <Marker
+                key={spawn.id}
+                position={[spawn.lat, spawn.lng]}
                 icon={icon}
                 eventHandlers={{ click: () => setEncounter(spawn) }}
               />
@@ -130,19 +140,24 @@ const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
       </div>
 
       {/* Primary HUD Layer */}
-      <HUD onOpenMenu={() => setActiveOverlay('menu')} playerLevel={40} />
+      <HUD onOpenMenu={() => setActiveOverlay('menu')} playerLevel={trainer.level} xpProgress={trainer.progress} />
 
       {/* Overlays */}
       {activeOverlay === 'menu' && (
-        <MainMenu 
-          onClose={() => setActiveOverlay('none')} 
+        <MainMenu
+          onClose={() => setActiveOverlay('none')}
           onOpenPokedex={() => setActiveOverlay('pokedex')}
           onOpenInventory={() => setActiveOverlay('inventory')}
         />
       )}
 
       {activeOverlay === 'pokedex' && (
-        <PokedexScreen onClose={() => setActiveOverlay('menu')} />
+        <PokedexScreen
+          onClose={() => setActiveOverlay('menu')}
+          owned={collection.owned}
+          candies={collection.candies}
+          onEvolve={collection.evolve}
+        />
       )}
 
       {activeOverlay === 'inventory' && (
@@ -151,26 +166,19 @@ const MapScreen: React.FC<MapScreenProps> = ({ onCaught }) => {
 
       {/* Encounter Screen */}
       {encounter && (
-        <EncounterScreen 
-          spawn={encounter} 
-          onClose={() => setEncounter(null)} 
+        <EncounterScreen
+          spawn={encounter}
+          onClose={() => setEncounter(null)}
+          catchPokemon={collection.catchPokemon}
+          gainXp={trainer.gainXp}
           onCaught={() => {
+            removeSpawn(encounter.id);
             setEncounter(null);
-            onCaught();
-          }} 
+          }}
         />
       )}
     </div>
   );
-};
-
-// Helper component to capture map clicks
-import { useMapEvents } from 'react-leaflet';
-const MapClickCapturer = ({ onClick }: { onClick: (e: any) => void }) => {
-  useMapEvents({
-    click: onClick,
-  });
-  return null;
 };
 
 export default MapScreen;

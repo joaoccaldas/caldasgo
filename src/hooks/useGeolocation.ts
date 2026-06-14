@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export interface Location {
   lat: number;
@@ -7,20 +7,21 @@ export interface Location {
 
 const MOCK_LOCATION: Location = { lat: 40.7812, lng: -73.9665 }; // Central Park, NY
 
+const GEOLOCATION_SUPPORTED = typeof navigator !== 'undefined' && !!navigator.geolocation;
+
 export const useGeolocation = () => {
-  const [location, setLocation] = useState<Location | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isMock, setIsMock] = useState(false);
+  const [location, setLocation] = useState<Location | null>(GEOLOCATION_SUPPORTED ? null : MOCK_LOCATION);
+  const [error, setError] = useState<string | null>(
+    GEOLOCATION_SUPPORTED ? null : 'Geolocation not supported. Using mock location.',
+  );
+  const [isMock, setIsMock] = useState(!GEOLOCATION_SUPPORTED);
+  const gotLocationRef = useRef(false);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setError('Geolocation not supported. Using mock location.');
-      setLocation(MOCK_LOCATION);
-      setIsMock(true);
-      return;
-    }
+    if (!GEOLOCATION_SUPPORTED) return;
 
     const success = (position: GeolocationPosition) => {
+      gotLocationRef.current = true;
       setLocation({
         lat: position.coords.latitude,
         lng: position.coords.longitude,
@@ -32,7 +33,7 @@ export const useGeolocation = () => {
     const handleError = (error: GeolocationPositionError) => {
       console.warn("GPS Error, falling back to mock:", error.message);
       setError('GPS unavailable. Using mock location.');
-      if (!location) {
+      if (!gotLocationRef.current) {
         setLocation(MOCK_LOCATION);
         setIsMock(true);
       }
@@ -54,14 +55,11 @@ export const useGeolocation = () => {
 
     // Hard fallback if getCurrentPosition hangs indefinitely
     const timeoutId = setTimeout(() => {
-      setLocation(prev => {
-        if (!prev) {
-          setError('GPS timeout. Using mock location.');
-          setIsMock(true);
-          return MOCK_LOCATION;
-        }
-        return prev;
-      });
+      if (!gotLocationRef.current) {
+        setError('GPS timeout. Using mock location.');
+        setIsMock(true);
+        setLocation(MOCK_LOCATION);
+      }
     }, 12000);
 
     return () => {
