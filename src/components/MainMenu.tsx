@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Book, Backpack, Settings, ShieldAlert, Package, Newspaper, X } from 'lucide-react';
+import { Settings, Newspaper, X } from 'lucide-react';
 
 interface MainMenuProps {
   onClose: () => void;
@@ -45,8 +45,8 @@ const MainMenu: React.FC<MainMenuProps> = ({ onClose, onOpenPokedex, onOpenInven
         <div className="relative w-full h-[250px] flex items-center justify-center">
           
           <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }} className="absolute z-20 flex flex-col items-center gap-1 -translate-y-12">
-             <div className="w-20 h-20 rounded-full bg-[#38bdf8] text-white flex items-center justify-center shadow-xl border-[3px] border-white">
-                <Package size={36} />
+             <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-2xl border-[3px] border-white overflow-hidden bg-white">
+                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Item/Bag_Upgrades_1.png" alt="Shop" className="w-[80%] h-[80%] object-contain" />
              </div>
              <span className="text-white font-bold text-sm tracking-wide drop-shadow-md mt-1">SHOP</span>
           </motion.button>
@@ -57,17 +57,16 @@ const MainMenu: React.FC<MainMenuProps> = ({ onClose, onOpenPokedex, onOpenInven
             onClick={onOpenPokedex}
             className="absolute left-8 -translate-y-2 flex flex-col items-center gap-1"
           >
-             <div className="w-16 h-16 rounded-full bg-[#ef4444] text-white flex items-center justify-center shadow-xl border-2 border-white">
-                <Book size={28} />
+             <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-xl border-2 border-white overflow-hidden bg-white">
+                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokedex/pokedex_icon.png" alt="Pokedex" className="w-[70%] h-[70%] object-contain" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-radar.png" }} />
              </div>
              <span className="text-white font-bold text-xs tracking-wide drop-shadow-md mt-1">POKÉDEX</span>
           </motion.button>
 
           {/* Right: POKEMON */}
           <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.25 }} className="absolute right-8 -translate-y-2 flex flex-col items-center gap-1">
-             <div className="w-16 h-16 rounded-full bg-[#ef4444] text-white flex items-center justify-center shadow-xl border-2 border-white relative overflow-hidden">
-                <div className="absolute bottom-0 w-full h-1/2 bg-white" />
-                <div className="absolute w-4 h-4 bg-white border-[2px] border-slate-800 rounded-full shadow-inner" />
+             <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-xl border-2 border-white relative overflow-hidden">
+                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/Item_0001.png" alt="Pokemon" className="w-[80%] h-[80%] object-contain drop-shadow-md" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" }} />
              </div>
              <span className="text-white font-bold text-xs tracking-wide drop-shadow-md mt-1">POKÉMON</span>
           </motion.button>
@@ -78,16 +77,16 @@ const MainMenu: React.FC<MainMenuProps> = ({ onClose, onOpenPokedex, onOpenInven
             onClick={onOpenInventory}
             className="absolute left-16 translate-y-20 flex flex-col items-center gap-1"
           >
-             <div className="w-16 h-16 rounded-full bg-[#3b82f6] text-white flex items-center justify-center shadow-xl border-2 border-white">
-                <Backpack size={28} />
+             <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-xl border-2 border-white overflow-hidden bg-white">
+                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Item/Bag_01.png" alt="Items" className="w-[75%] h-[75%] object-contain" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png" }} />
              </div>
              <span className="text-white font-bold text-xs tracking-wide drop-shadow-md mt-1">ITEMS</span>
           </motion.button>
 
           {/* Bottom Right: BATTLE */}
           <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3 }} className="absolute right-16 translate-y-20 flex flex-col items-center gap-1">
-             <div className="w-16 h-16 rounded-full bg-[#f97316] text-white flex items-center justify-center shadow-xl border-2 border-white">
-                <ShieldAlert size={28} />
+             <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-xl border-2 border-white bg-white">
+                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Combat/pvp_icon.png" alt="Battle" className="w-[80%] h-[80%] object-contain" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/vs-seeker.png" }} />
              </div>
              <span className="text-white font-bold text-xs tracking-wide drop-shadow-md mt-1">BATTLE</span>
           </motion.button>
