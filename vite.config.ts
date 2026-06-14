@@ -8,5 +8,5 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  base: '/caldasgo/', // Important for GitHub Pages
+  base: "/", // Important for GitHub Pages
 })

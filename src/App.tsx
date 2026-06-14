@@ -2,16 +2,18 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Navigation from './components/Navigation';
 import MapScreen from './pages/MapScreen';
 import PokedexScreen from './pages/PokedexScreen';
+import InventoryScreen from './pages/InventoryScreen';
 
 function App() {
   return (
-    <Router basename="/caldasgo">
+    <Router basename="/">
       <div className="h-full w-full flex flex-col bg-slate-900 text-white font-sans">
         {/* Main Content Area */}
         <main className="flex-1 relative overflow-hidden">
           <Routes>
             <Route path="/map" element={<MapScreen />} />
             <Route path="/pokedex" element={<PokedexScreen />} />
+            <Route path="/inventory" element={<InventoryScreen />} />
             <Route path="*" element={<Navigate to="/map" replace />} />
           </Routes>
         </main>

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Map, Book } from 'lucide-react';
+import { Map, Book, Backpack } from 'lucide-react';
 
 const Navigation = () => {
   return (
@@ -14,6 +14,18 @@ const Navigation = () => {
       >
         <Map size={24} />
         <span className="text-xs font-semibold tracking-wider">Map</span>
+      </NavLink>
+
+      <NavLink 
+        to="/inventory" 
+        className={({ isActive }) => 
+          `flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
+            isActive ? 'text-blue-400' : 'text-slate-400 hover:text-slate-300'
+          }`
+        }
+      >
+        <Backpack size={24} />
+        <span className="text-xs font-semibold tracking-wider">Items</span>
       </NavLink>
 
       <NavLink 

@@ -1,34 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import { useGeolocation, Location } from '../hooks/useGeolocation';
 import { useSpawning } from '../hooks/useSpawning';
-import L from 'leaflet';
+import { usePokestops } from '../hooks/usePokestops';
 import EncounterScreen from '../components/EncounterScreen';
-import { SpawnedPokemon } from '../types';
+import PokestopScreen from '../components/PokestopScreen';
+import { SpawnedPokemon, Pokestop } from '../types';
+import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icon in Leaflet + Vite
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-let DefaultIcon = L.icon({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
+// Fix Leaflet's default icon path issues
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
+// Create custom icons
+const playerIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+});
 
-// Custom icon creator for Pokemon
-const createPokemonIcon = (imageUrl: string) => {
-  return L.divIcon({
-    html: `<div class="w-16 h-16 rounded-full bg-slate-800/80 border-2 border-yellow-400 p-1 flex items-center justify-center shadow-lg transform -translate-x-1/2 -translate-y-1/2 animate-bounce"><img src="${imageUrl}" class="w-full h-full object-contain drop-shadow-md" /></div>`,
-    className: 'pokemon-marker',
-    iconSize: [64, 64],
-    iconAnchor: [32, 64], // Anchor at bottom center
-  });
-};
+const getPokestopIcon = (isSpinable: boolean) => new L.DivIcon({
+  className: 'bg-transparent',
+  html: `<div style="width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; background-color: ${isSpinable ? '#3b82f6' : '#a855f7'}; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>`,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
+
 
 // Component to recenter map when location changes
 const RecenterMap = ({ location }: { location: Location }) => {
@@ -42,7 +45,10 @@ const RecenterMap = ({ location }: { location: Location }) => {
 const MapScreen = () => {
   const { location, error } = useGeolocation();
   const { spawnedPokemon, removeSpawn } = useSpawning(location);
+  const { pokestops, spinPokestop, isSpinable } = usePokestops(location);
+  
   const [activeEncounter, setActiveEncounter] = useState<SpawnedPokemon | null>(null);
+  const [activePokestop, setActivePokestop] = useState<Pokestop | null>(null);
 
   if (error) {
     return (
@@ -78,18 +84,34 @@ const MapScreen = () => {
           <RecenterMap location={location} />
           
           {/* Player Marker */}
-          <Marker position={[location.lat, location.lng]}>
+          <Marker position={[location.lat, location.lng]} icon={playerIcon}>
             <Popup>You are here!</Popup>
           </Marker>
 
           {/* Spawned Pokemon */}
-          {spawnedPokemon.map((spawn) => (
+          {spawnedPokemon.map(spawn => (
             <Marker 
               key={spawn.id} 
               position={[spawn.lat, spawn.lng]}
-              icon={createPokemonIcon(spawn.pokemonData.image)}
+              icon={new L.Icon({
+                iconUrl: spawn.pokemonData.image,
+                iconSize: [64, 64],
+                iconAnchor: [32, 32]
+              })}
               eventHandlers={{
                 click: () => setActiveEncounter(spawn)
+              }}
+            />
+          ))}
+
+          {/* Pokestops */}
+          {pokestops.map(stop => (
+            <Marker 
+              key={stop.id} 
+              position={[stop.lat, stop.lng]}
+              icon={getPokestopIcon(isSpinable(stop))}
+              eventHandlers={{
+                click: () => setActivePokestop(stop)
               }}
             />
           ))}
@@ -103,6 +125,17 @@ const MapScreen = () => {
         </div>
       </div>
 
+      {/* Render Pokestop Screen */}
+      {activePokestop && (
+        <PokestopScreen 
+          pokestop={activePokestop} 
+          isSpinable={isSpinable(activePokestop)}
+          onSpin={spinPokestop}
+          onClose={() => setActivePokestop(null)} 
+        />
+      )}
+
+      {/* Render Encounter Screen */}
       {activeEncounter && (
         <EncounterScreen 
           spawn={activeEncounter} 
