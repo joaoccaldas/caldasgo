@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Newspaper, X } from 'lucide-react';
+import { Settings, Newspaper } from 'lucide-react';
 
 interface MainMenuProps {
   onClose: () => void;
@@ -102,14 +102,13 @@ const MainMenu: React.FC<MainMenuProps> = ({ onClose, onOpenPokedex, onOpenInven
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={onClose}
-          className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white"
-          style={{
-            background: 'linear-gradient(135deg, #26C281 0%, #17A566 100%)',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.3), inset -4px -4px 10px rgba(0,0,0,0.2), inset 4px 4px 10px rgba(255,255,255,0.4)',
-            border: '4px solid #FFFFFF'
-          }}
+          className="w-[72px] h-[72px] flex items-center justify-center bg-transparent border-none"
         >
-          <X size={44} strokeWidth={4} />
+           <img 
+             src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Menu%20Icons/btn_close_normal.png" 
+             alt="Close Menu" 
+             className="w-full h-full object-contain drop-shadow-lg"
+           />
         </motion.button>
       </div>
     </motion.div>

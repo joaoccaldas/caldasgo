@@ -70,32 +70,14 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel }) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onOpenMenu}
-          className="w-[84px] h-[84px] rounded-full relative overflow-hidden flex items-center justify-center pointer-events-auto transform translate-y-2"
-          style={{
-            background: 'linear-gradient(135deg, #FF6B6B 0%, #D83131 50%, #FFFFFF 50%, #E6E6E6 100%)',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.4), inset -4px -4px 10px rgba(0,0,0,0.2), inset 4px 4px 10px rgba(255,255,255,0.4)',
-            border: '3px solid #1A1D20'
-          }}
+          className="w-[84px] h-[84px] relative flex items-center justify-center pointer-events-auto transform translate-y-2"
         >
-          {/* Black Center Band */}
-          <div className="absolute w-full h-[6px] bg-[#1A1D20]" style={{ top: 'calc(50% - 3px)' }} />
-          
-          {/* Outer Center Ring */}
-          <div className="w-8 h-8 rounded-full bg-[#1A1D20] absolute flex items-center justify-center">
-            {/* Inner White Button with Volumetric shadow */}
-            <div 
-               className="w-5 h-5 rounded-full bg-white relative"
-               style={{
-                 boxShadow: 'inset -2px -2px 4px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.5)'
-               }}
-            >
-               {/* Tiny specular highlight on the button */}
-               <div className="absolute top-[2px] left-[2px] w-2 h-1 bg-white/80 rounded-full blur-[0.5px]" />
-            </div>
-          </div>
-          
-          {/* Large Specular Glare (Glass Orb effect) */}
-          <div className="absolute top-1 left-2 w-10 h-6 bg-white/20 rounded-[100%] rotate-[-30deg]" />
+           <img 
+             src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Menu%20Icons/btn_action_menu.png" 
+             alt="Main Menu" 
+             className="w-full h-full object-contain drop-shadow-xl"
+             onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" }}
+           />
         </motion.button>
 
         {/* Bottom Right: Nearby Radar */}
