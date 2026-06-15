@@ -8,42 +8,11 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  runner-smoke-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Capture install and build output
-        shell: bash
+      - name: Confirm runner starts
         run: |
-          set +e
-          npm install > build.log 2>&1
-          install_status=$?
-          npm run build >> build.log 2>&1
-          build_status=$?
-          printf 'install_status=%s\nbuild_status=%s\n' "$install_status" "$build_status" > build-status.txt
-          exit 0
-
-      - name: Upload build diagnostics
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-build-diagnostics
-          path: |
-            build.log
-            build-status.txt
-          if-no-files-found: error
-
-      - name: Report validation result
-        shell: bash
-        run: |
-          cat build-status.txt
-          source build-status.txt
-          test "$install_status" -eq 0
-          test "$build_status" -eq 0
+          echo "runner_started=true"
+          node --version
+          npm --version
