@@ -53,20 +53,45 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
         </div>
       </div>
 
-      {/* Top Right: Currency + weather (authentic PoGo) */}
+      {/* Top Right: Compass & Weather */}
       <div className="absolute top-12 right-4 z-[400] flex flex-col gap-3 pointer-events-auto items-end">
-        {/* Stardust currency pill */}
-        <div className="bg-pogo-glass backdrop-blur-md rounded-pogo-pill shadow-[0_2px_8px_rgba(11,42,58,0.25)] border border-pogo-glass-border flex items-center gap-1 pl-1.5 pr-3 h-8">
-          <StardustIcon className="w-[18px] h-[18px]" />
-          <span className="font-display font-extrabold text-[13px] text-pogo-navy tracking-wide leading-none pt-[1px]">{stardust.toLocaleString()}</span>
-        </div>
-        {/* Weather */}
+        {/* Compass */}
         <div className="w-12 h-12 bg-white/30 backdrop-blur rounded-full shadow-pogo-mid flex items-center justify-center border border-white/50 cursor-pointer hover:bg-white/40 transition-colors overflow-hidden">
+          <img
+            src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_compass_fixed.png"
+            alt="Compass"
+            className="w-[65%] h-[65%] object-contain opacity-90 drop-shadow-md"
+          />
+        </div>
+        
+        {/* Weather */}
+        <div className="w-12 h-12 bg-white/30 backdrop-blur rounded-full shadow-pogo-mid flex items-center justify-center border border-white/50 cursor-pointer hover:bg-white/40 transition-colors overflow-hidden mt-1">
           <img
             src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Weather/weatherIcon_large_clearDay.png"
             alt="Clear weather"
             className="w-[85%] h-[85%] object-contain"
           />
+        </div>
+      </div>
+
+      {/* Bottom Right: Field Research (Binoculars) */}
+      <div className="absolute bottom-[90px] right-4 z-[400] flex flex-col items-end pointer-events-auto">
+        <div className="w-16 h-16 relative flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
+           {/* Authentic orange gradient ring */}
+           <div className="absolute inset-0 rounded-full border-[3px] border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))' }}></div>
+           <img
+             src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_research.png"
+             alt="Field Research"
+             className="w-[60%] h-[60%] object-contain relative z-10 drop-shadow-sm"
+           />
+        </div>
+      </div>
+
+      {/* Top Center: Stardust currency pill (Moved here for better authenticity/balance) */}
+      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[400] flex flex-col pointer-events-auto">
+        <div className="bg-pogo-glass backdrop-blur-md rounded-pogo-pill shadow-[0_2px_8px_rgba(11,42,58,0.25)] border border-pogo-glass-border flex items-center gap-1 pl-1.5 pr-3 h-8">
+          <StardustIcon className="w-[18px] h-[18px]" />
+          <span className="font-display font-extrabold text-[13px] text-pogo-navy tracking-wide leading-none pt-[1px]">{stardust.toLocaleString()}</span>
         </div>
       </div>
 
