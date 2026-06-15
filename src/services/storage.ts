@@ -9,7 +9,7 @@ const CANDY_KEY = 'caldasgo_candies';
 const XP_KEY = 'caldasgo_trainer_xp';
 const STARDUST_KEY = 'caldasgo_stardust';
 const SEEN_KEY = 'caldasgo_seen_species';
-const INIT_KEY = 'caldasgo_init_v3';
+const INIT_KEY = 'caldasgo_init_v4';
 
 const DEFAULT_STARDUST = 1000;
 
@@ -37,10 +37,30 @@ const makeStarter = (speciesId: number, level: number): OwnedPokemon => {
   };
 };
 
+const makeShinyLegendary = (speciesId: number, level: number): OwnedPokemon => {
+  const species = getSpecies(speciesId);
+  const ivs = { attack: 15, defense: 15, stamina: 15 };
+  return {
+    uid: `legendary-${speciesId}`,
+    speciesId,
+    level,
+    ivs,
+    cp: species ? calculateCP(species.baseStats, level, ivs) : 10,
+    caughtAt: Date.now() - Math.random() * 1000000,
+    isShiny: true,
+  };
+};
+
 // Bulbasaur, Charmander, Squirtle, Pikachu - a small starter collection.
 const STARTER_SPECIES_IDS = [1, 4, 7, 25];
 
-const DEFAULT_OWNED: OwnedPokemon[] = STARTER_SPECIES_IDS.map(id => makeStarter(id, 5));
+// 10 Iconic Shiny Legendaries
+const SHINY_LEGENDARY_IDS = [150, 249, 250, 382, 383, 384, 483, 484, 487, 643];
+
+const DEFAULT_OWNED: OwnedPokemon[] = [
+  ...STARTER_SPECIES_IDS.map(id => makeStarter(id, 5)),
+  ...SHINY_LEGENDARY_IDS.map(id => makeShinyLegendary(id, 40))
+];
 
 const DEFAULT_CANDIES: CandyBag = {
   BULBASAUR: 10,
@@ -77,6 +97,7 @@ const ensureSeeded = async () => {
 
   await localforage.setItem(OWNED_KEY, DEFAULT_OWNED);
   await localforage.setItem(CANDY_KEY, DEFAULT_CANDIES);
+  await localforage.setItem(SEEN_KEY, [...STARTER_SPECIES_IDS, ...SHINY_LEGENDARY_IDS]);
   await localforage.setItem(INIT_KEY, true);
 };
 

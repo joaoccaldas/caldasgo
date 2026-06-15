@@ -5,7 +5,6 @@ import {
   REGIONS,
   getSpecies,
   getTypeIcon,
-  isShowcaseRarity,
   TYPE_COLORS,
 } from '../data/pokemonDatabase';
 import { maxCP } from '../data/cpTable';
@@ -60,7 +59,10 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
   const caughtSpeciesCount = ownedBySpecies.size;
 
   const filteredGrid = useMemo(() => {
-    let entries = POKEMON_DATABASE;
+    // 1. Cap the Pokédex at the highest ID the player has encountered
+    const maxSeenId = seenSet.size > 0 ? Math.max(...Array.from(seenSet)) : 0;
+    
+    let entries = POKEMON_DATABASE.filter(s => s.id <= maxSeenId);
 
     if (regionFilter !== 'all') {
       entries = entries.filter(species => species.generation === regionFilter);
@@ -90,7 +92,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
   const selectedSpecies = selectedSpeciesId !== null ? getSpecies(selectedSpeciesId) : undefined;
   const selectedOwned = selectedSpeciesId !== null ? ownedBySpecies.get(selectedSpeciesId) : undefined;
   const bestOwned = selectedOwned?.[0];
-  const selectedShiny = selectedSpecies ? isShowcaseRarity(selectedSpecies.rarity) : false;
+  const selectedShiny = selectedOwned?.some(p => p.isShiny) ?? false;
 
   const handleEvolve = async (toSpeciesId: number, candyCost: number) => {
     if (!bestOwned) return;
@@ -165,10 +167,11 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
       <div className="flex-1 overflow-y-auto px-2 pt-2 pb-44">
         <div className="grid grid-cols-3 gap-2">
           {filteredGrid.map((species) => {
-            const caught = ownedBySpecies.get(species.id);
-            const shiny = isShowcaseRarity(species.rarity);
-            const seenOnly = !caught && !shiny && seenSet.has(species.id);
-            const clickable = !!caught || shiny;
+            const caughtList = ownedBySpecies.get(species.id);
+            const caught = !!caughtList;
+            const shiny = caughtList?.some(p => p.isShiny) ?? false;
+            const seenOnly = !caught && seenSet.has(species.id);
+            const clickable = caught || seenOnly;
             const typeColor = TYPE_COLORS[species.types[0]];
 
             return (
@@ -183,13 +186,13 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                   <div className="absolute inset-x-0 top-0 h-2/3 opacity-25" style={{ background: `radial-gradient(circle at 50% 20%, ${typeColor} 0%, transparent 70%)` }} />
                 )}
                 {shiny && <span className="absolute top-1 right-1.5 text-xs z-20" title="Shiny">✨</span>}
-                {caught && caught.length > 1 && (
-                  <span className="absolute top-1 left-1.5 bg-pogo-teal text-white font-display font-extrabold text-[9px] px-1.5 rounded-pogo-pill z-20">x{caught.length}</span>
+                {caughtList && caughtList.length > 1 && (
+                  <span className="absolute top-1 left-1.5 bg-pogo-teal text-white font-display font-extrabold text-[9px] px-1.5 rounded-pogo-pill z-20">x{caughtList.length}</span>
                 )}
 
                 <div className="flex-1 w-full flex items-center justify-center p-2 relative">
                   {clickable && <div className="absolute bottom-1.5 w-9 h-2 bg-black/10 rounded-[50%] blur-[1px]" />}
-                  {clickable ? (
+                  {caught ? (
                     <PokemonSprite id={species.id} name={species.name} shiny={shiny} className="max-h-full max-w-full object-contain drop-shadow relative z-10" />
                   ) : seenOnly ? (
                     <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(0.3)]" />
@@ -199,12 +202,12 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                     </div>
                   )}
                 </div>
-                {clickable && (
+                {caught && (
                   <span className="font-black text-slate-500 text-[11px] tracking-wider pb-1.5 z-10 bg-white/80 px-2 rounded-full">
                     {species.name}
                   </span>
                 )}
-                <span className={`font-black text-[10px] tracking-widest absolute bottom-1.5 ${clickable ? 'text-slate-400 opacity-0' : 'text-slate-400'}`}>
+                <span className={`font-black text-[10px] tracking-widest absolute bottom-1.5 ${caught ? 'text-slate-400 opacity-0' : 'text-slate-400'}`}>
                   {species.id.toString().padStart(3, '0')}
                 </span>
               </button>
@@ -289,7 +292,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
 
       {/* Authentic Flat Detail View */}
       <AnimatePresence>
-        {selectedSpecies && (bestOwned || selectedShiny) && (
+        {selectedSpecies && (
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -340,7 +343,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
              <div className="w-full flex flex-col items-center z-10 mt-2 flex-1 bg-white pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-[2.5rem] pb-8">
                {selectedShiny && (
                  <div className="flex items-center gap-1 bg-amber-100 text-amber-700 font-black text-xs px-3 py-1 rounded-full mb-2 uppercase tracking-wider">
-                   ✨ Shiny {selectedSpecies.rarity}
+                   ✨ Shiny Variant
                  </div>
                )}
 

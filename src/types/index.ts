@@ -16,6 +16,7 @@ export interface SpawnedPokemon {
   lat: number;
   lng: number;
   spawnTime: number; // timestamp
+  isShiny?: boolean;
 }
 
 /** An individual Pokémon a trainer has caught, stored in their collection. */
@@ -27,6 +28,7 @@ export interface OwnedPokemon {
   cp: number;
   caughtAt: number; // timestamp
   favorite?: boolean;
+  isShiny?: boolean;
 }
 
 export interface Inventory {

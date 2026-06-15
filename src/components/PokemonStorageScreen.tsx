@@ -57,18 +57,39 @@ const ivPercent = (ivs: OwnedPokemon['ivs']) =>
 const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, owned, candies, stardust, onEvolve, onPowerUp, onToggleFavorite }) => {
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const sorted = useMemo(() => {
-    const list = [...owned];
+    let list = [...owned];
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(p => {
+         const s = getSpecies(p.speciesId);
+         if (!s) return false;
+         if (!isNaN(Number(q))) return s.id.toString().includes(q);
+         return s.name.toLowerCase().includes(q);
+      });
+    }
+
     switch (sortKey) {
       case 'cp':
-        list.sort((a, b) => b.cp - a.cp);
+        list.sort((a, b) => {
+          if (b.cp !== a.cp) return b.cp - a.cp;
+          return (getSpecies(a.speciesId)?.name || '').localeCompare(getSpecies(b.speciesId)?.name || '');
+        });
         break;
       case 'name':
-        list.sort((a, b) => (getSpecies(a.speciesId)?.name || '').localeCompare(getSpecies(b.speciesId)?.name || ''));
+        list.sort((a, b) => {
+          const cmp = (getSpecies(a.speciesId)?.name || '').localeCompare(getSpecies(b.speciesId)?.name || '');
+          if (cmp !== 0) return cmp;
+          return b.cp - a.cp;
+        });
         break;
       case 'number':
-        list.sort((a, b) => a.speciesId - b.speciesId);
+        list.sort((a, b) => {
+          if (a.speciesId !== b.speciesId) return a.speciesId - b.speciesId;
+          return b.cp - a.cp;
+        });
         break;
       case 'recent':
       default:
@@ -76,7 +97,7 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
         break;
     }
     return list;
-  }, [owned, sortKey]);
+  }, [owned, sortKey, searchQuery]);
 
   const selected = selectedUid ? owned.find(p => p.uid === selectedUid) : undefined;
   const selectedSpecies = selected ? getSpecies(selected.speciesId) : undefined;
@@ -103,19 +124,36 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
       <ScreenHeader title="POKÉMON" rightLabel={`${owned.length}/${STORAGE_CAP}`} />
 
       {/* Sort Bar */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-white border-b-2 border-slate-200 shadow-sm relative z-10 shrink-0 overflow-x-auto">
-        <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider shrink-0">Sort</span>
-        {SORTS.map(s => (
-          <button
-            key={s.key}
-            onClick={() => setSortKey(s.key)}
-            className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide whitespace-nowrap transition-colors ${
-              sortKey === s.key ? 'bg-[#1b6e7e] text-white shadow-sm' : 'bg-slate-100 text-slate-500'
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
+      <div className="flex flex-col bg-white border-b-2 border-slate-200 shadow-sm relative z-10 shrink-0">
+        <div className="flex items-center px-4 py-2 border-b border-slate-100">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input
+            type="text"
+            placeholder="Search Pokémon"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-transparent outline-none ml-2 text-slate-700 placeholder-slate-400 font-bold text-sm"
+          />
+          {searchQuery && (
+             <button onClick={() => setSearchQuery('')} className="text-slate-400 p-1 active:scale-95">
+               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+             </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 px-3 py-2 overflow-x-auto">
+          <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider shrink-0">Sort</span>
+          {SORTS.map(s => (
+            <button
+              key={s.key}
+              onClick={() => setSortKey(s.key)}
+              className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide whitespace-nowrap transition-colors ${
+                sortKey === s.key ? 'bg-[#1b6e7e] text-white shadow-sm' : 'bg-slate-100 text-slate-500'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Grid */}
@@ -143,11 +181,17 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                   <span className="text-[11px] font-black text-slate-600 tracking-wide leading-none pt-1 shrink-0">
                     CP {p.cp}
                   </span>
-                  <div className="flex-1 min-h-0 w-full flex items-center justify-center">
+                  <div className="flex-1 min-h-0 w-full flex items-center justify-center relative">
+                    {p.isShiny && (
+                      <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none opacity-40">
+                         <div className="w-[150%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-200/50 via-transparent to-transparent animate-[spin_6s_linear_infinite]" />
+                      </div>
+                    )}
                     <PokemonSprite
                       id={species.id}
                       name={species.name}
-                      className="max-h-full max-w-full object-contain drop-shadow-md"
+                      shiny={!!p.isShiny}
+                      className="max-h-full max-w-full object-contain drop-shadow-md relative z-10"
                     />
                   </div>
                   <div className="w-full px-2 pb-1 pt-0.5">
@@ -230,11 +274,16 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
               transition={{ repeat: Infinity, duration: 4, repeatType: 'mirror', ease: 'easeInOut' }}
               className="w-full h-[28vh] flex items-center justify-center relative z-10"
             >
+              {selected.isShiny && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50 z-0 mix-blend-screen">
+                   <div className="w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,_#fef08a_0%,_transparent_60%)] animate-pulse" />
+                </div>
+              )}
               <PokemonSprite
                 id={selectedSpecies.id}
                 name={selectedSpecies.name}
-                variant="artwork"
-                className="w-[65%] h-full object-contain drop-shadow-2xl"
+                shiny={!!selected.isShiny}
+                className="w-[65%] h-full object-contain drop-shadow-2xl relative z-10"
               />
             </motion.div>
 
@@ -253,7 +302,10 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                 );
               })()}
 
-              <h2 className="text-[28px] font-black text-slate-800 tracking-wide uppercase mt-1 mb-1">{selectedSpecies.name}</h2>
+              <h2 className="text-[28px] font-black text-slate-800 tracking-wide uppercase mt-1 mb-1">
+                {selected.isShiny && <span className="text-amber-500 mr-2 text-xl drop-shadow-sm align-middle">✨</span>}
+                {selectedSpecies.name}
+              </h2>
 
               <div className="text-slate-500 font-bold text-sm mb-2">
                 Level {selected.level} &middot; IV {ivPercent(selected.ivs)}%
