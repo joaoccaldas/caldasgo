@@ -6,85 +6,120 @@ interface SplashScreenProps {
   onEnter: () => void;
 }
 
-// A few iconic real Pokémon sprites that drift across the loading screen.
-const FLOATERS = [25, 1, 4, 7, 150, 144];
+const FLOATERS = [25, 1, 4, 7, 133, 143];
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
   const [ready, setReady] = useState(false);
 
-  // Mirror the real game's brief boot loader before the map is playable.
   useEffect(() => {
-    const t = setTimeout(() => setReady(true), 1800);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setReady(true), 1900);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[1000] flex flex-col items-center justify-between py-20 overflow-hidden"
-      style={{ background: 'radial-gradient(circle at 50% 35%, #1b6e7e 0%, #0b2a3a 70%)' }}
+      exit={{ opacity: 0, scale: 1.02 }}
+      transition={{ duration: 0.35 }}
+      className="absolute inset-0 z-[1000] overflow-hidden bg-[#dff5fb] text-[#173f4b]"
     >
-      {/* Drifting real Pokémon sprites */}
-      {FLOATERS.map((id, i) => (
+      <div className="absolute inset-x-0 top-0 h-[56%] bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.95),rgba(214,242,249,0.72)_45%,rgba(146,218,226,0.58)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-[49%] bg-[linear-gradient(180deg,#8bd39a_0%,#68bd7e_48%,#3f9869_100%)]" />
+      <div className="absolute left-[-18%] right-[-18%] bottom-[25%] h-36 rounded-[50%] bg-[#b9e7ac] blur-[1px]" />
+      <div className="absolute left-[-16%] right-[-16%] bottom-[16%] h-32 rounded-[50%] bg-[#79c98b]" />
+
+      <svg className="absolute inset-x-0 bottom-[13%] h-40 w-full opacity-45" viewBox="0 0 390 160" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 112 C45 90 83 102 121 82 C163 59 206 76 250 58 C299 38 340 59 390 43" fill="none" stroke="rgba(255,255,255,.72)" strokeWidth="3" />
+        <path d="M0 140 C52 112 100 132 147 106 C191 84 232 101 281 78 C329 57 357 70 390 61" fill="none" stroke="rgba(255,255,255,.48)" strokeWidth="2" />
+      </svg>
+
+      {FLOATERS.map((id, index) => (
         <motion.img
           key={id}
           src={getPogoSprite(id)}
           alt=""
-          className="absolute w-24 h-24 object-contain opacity-20 pointer-events-none"
-          style={{ left: `${10 + i * 15}%`, top: `${15 + (i % 3) * 25}%` }}
-          animate={{ y: [-12, 12], rotate: [-4, 4] }}
-          transition={{ repeat: Infinity, duration: 4 + i, repeatType: 'mirror', ease: 'easeInOut' }}
-          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          className="absolute h-16 w-16 object-contain drop-shadow-[0_7px_8px_rgba(18,71,72,.22)] sm:h-20 sm:w-20"
+          style={{
+            left: `${6 + index * 17}%`,
+            top: `${15 + (index % 3) * 12}%`,
+            opacity: index === 0 || index === 4 ? 0.32 : 0.2,
+          }}
+          animate={{ y: [-5, 7, -5], rotate: [-2, 2, -2] }}
+          transition={{ duration: 4.5 + index * 0.35, repeat: Infinity, ease: 'easeInOut' }}
+          onError={(event) => { event.currentTarget.style.display = 'none'; }}
         />
       ))}
 
-      {/* Wordmark */}
-      <div className="flex-1 flex flex-col items-center justify-center z-10">
-        <motion.div
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', damping: 12 }}
-          className="relative"
-        >
-          {/* Poké Ball mark */}
-          <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-white border-[6px] border-slate-900 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1/2 bg-[#ee1c25]" />
-            <div className="absolute top-1/2 left-0 right-0 h-[6px] -translate-y-1/2 bg-slate-900" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full border-[5px] border-slate-900" />
-          </div>
-          <h1 className="text-6xl font-black tracking-tight text-center">
-            <span className="text-[#f6c243] drop-shadow-[0_3px_0_rgba(11,42,58,0.9)]">Caldas</span>
-            <span className="text-white drop-shadow-[0_3px_0_rgba(11,42,58,0.9)]">GO</span>
-          </h1>
-        </motion.div>
-      </div>
+      <div className="absolute inset-0 flex flex-col px-6 pb-[max(28px,env(safe-area-inset-bottom))] pt-[max(22px,env(safe-area-inset-top))]">
+        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.22em] text-[#2c6b73]/80">
+          <span>Location adventure</span>
+          <span>v1.0</span>
+        </div>
 
-      {/* Loader / Play button */}
-      <div className="z-10 flex flex-col items-center gap-4 w-full px-12">
-        {ready ? (
-          <motion.button
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onEnter}
-            className="px-12 py-3 rounded-full bg-[#f6c243] text-[#0b2a3a] font-black text-lg tracking-widest shadow-[0_6px_0_#c99526] active:translate-y-1 active:shadow-[0_3px_0_#c99526] transition-all"
+        <div className="flex flex-1 flex-col items-center justify-center -translate-y-3">
+          <motion.div
+            initial={{ y: 18, opacity: 0, scale: 0.88 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 160, damping: 17 }}
+            className="relative flex flex-col items-center"
           >
-            PLAY
-          </motion.button>
-        ) : (
-          <>
-            <div className="w-full max-w-xs h-2 rounded-full bg-white/20 overflow-hidden">
+            <div className="relative mb-4 h-[104px] w-[104px] rounded-full border-[7px] border-white bg-white shadow-[0_16px_38px_rgba(17,77,84,.23)]">
+              <div className="absolute inset-[5px] overflow-hidden rounded-full border-[5px] border-[#183f4b] bg-white">
+                <div className="absolute inset-x-0 top-0 h-1/2 bg-[#ef4f52]" />
+                <div className="absolute inset-x-0 top-1/2 h-[6px] -translate-y-1/2 bg-[#183f4b]" />
+                <div className="absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-[#183f4b] bg-white shadow-inner" />
+              </div>
               <motion.div
-                className="h-full bg-[#2dd4bf] rounded-full"
-                initial={{ width: '5%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 1.6, ease: 'easeInOut' }}
+                className="absolute inset-[-10px] rounded-full border-2 border-white/55"
+                animate={{ scale: [1, 1.13, 1], opacity: [0.55, 0, 0.55] }}
+                transition={{ duration: 2.1, repeat: Infinity }}
               />
             </div>
-            <span className="text-white/70 font-bold text-xs tracking-widest uppercase">Loading…</span>
-          </>
-        )}
+
+            <div className="relative text-center">
+              <p className="mb-1 text-[11px] font-black uppercase tracking-[0.36em] text-[#28788a]">Explore your world</p>
+              <h1 className="text-[54px] font-black leading-none tracking-[-0.075em] drop-shadow-[0_4px_0_rgba(255,255,255,.85)] sm:text-[62px]">
+                <span className="text-[#f4bf3e] [text-shadow:0_3px_0_#775612,0_5px_12px_rgba(27,72,75,.18)]">Caldas</span>
+                <span className="ml-1 text-white [text-shadow:0_3px_0_#247489,0_5px_12px_rgba(27,72,75,.18)]">GO</span>
+              </h1>
+              <div className="mx-auto mt-3 h-1 w-28 rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-85" />
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4">
+          {ready ? (
+            <motion.button
+              initial={{ y: 12, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              whileTap={{ scale: 0.97, y: 2 }}
+              onClick={onEnter}
+              className="relative h-14 w-full overflow-hidden rounded-full border-2 border-white/90 bg-gradient-to-r from-[#43c9b3] via-[#26b7b6] to-[#228fae] text-base font-black uppercase tracking-[0.19em] text-white shadow-[0_8px_18px_rgba(26,102,110,.32),inset_0_1px_0_rgba(255,255,255,.45)]"
+            >
+              <span className="relative z-10">Enter CaldasGO</span>
+              <span className="absolute inset-x-5 top-1 h-px bg-white/55" />
+            </motion.button>
+          ) : (
+            <div className="w-full rounded-2xl bg-white/75 px-5 py-4 shadow-[0_10px_24px_rgba(31,104,102,.16)] backdrop-blur-md">
+              <div className="mb-2 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.18em] text-[#31737b]">
+                <span>Preparing adventure</span>
+                <span>Loading</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-[#c7e5df]">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-[#54d3b5] to-[#249eb2]"
+                  initial={{ width: '4%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: 1.75, ease: 'easeInOut' }}
+                />
+              </div>
+            </div>
+          )}
+
+          <p className="text-center text-[9px] font-bold uppercase leading-relaxed tracking-[0.13em] text-white/85 drop-shadow-sm">
+            Unofficial educational programming project
+          </p>
+        </div>
       </div>
     </motion.div>
   );
