@@ -63,11 +63,11 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
       >
         {/* Compass */}
         <div className="w-12 h-12 bg-white/30 backdrop-blur rounded-full shadow-pogo-mid flex items-center justify-center border border-white/50 cursor-pointer hover:bg-white/40 transition-colors overflow-hidden">
-          <img
-            src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_compass_fixed.png"
-            alt="Compass"
-            className="w-[65%] h-[65%] object-contain opacity-90 drop-shadow-md"
-          />
+          <svg viewBox="0 0 24 24" className="w-[65%] h-[65%] drop-shadow-md" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L8 12h8L12 2z" fill="#ef4444" stroke="#ffffff" strokeWidth="0.5"/>
+            <path d="M12 22L8 12h8L12 22z" fill="#f8fafc" stroke="#ffffff" strokeWidth="0.5"/>
+            <circle cx="12" cy="12" r="1.5" fill="#cbd5e1" />
+          </svg>
         </div>
         
         {/* Weather */}
@@ -88,11 +88,12 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
         <div className="w-16 h-16 relative flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
            {/* Authentic orange gradient ring */}
            <div className="absolute inset-0 rounded-full border-[3px] border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))' }}></div>
-           <img
-             src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_research.png"
-             alt="Field Research"
-             className="w-[60%] h-[60%] object-contain relative z-10 drop-shadow-sm"
-           />
+           <svg viewBox="0 0 24 24" className="w-[50%] h-[50%] relative z-10 drop-shadow-sm text-orange-500" fill="currentColor">
+             <path d="M11 6a2 2 0 0 0-2-2H4L2 6v11a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2V6zm2 0a2 2 0 0 1 2-2h5l2 2v11a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V6z" />
+             <path d="M11 11h2M11 15h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+             <circle cx="6.5" cy="14.5" r="2.5" fill="#fff" />
+             <circle cx="17.5" cy="14.5" r="2.5" fill="#fff" />
+           </svg>
         </div>
       </div>
 

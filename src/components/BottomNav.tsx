@@ -158,8 +158,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenPokedex, onOpenInventory, o
           </div>
 
           {/* Buddy chip */}
-          <div className="relative w-12 h-12 rounded-full border-2 border-white shadow-pogo-low bg-[#a3e635] flex items-center justify-center overflow-hidden">
-            <PokemonSprite id={1} name="Buddy" className="w-[110%] h-[110%] object-contain" />
+          <div className="relative w-12 h-12 flex-shrink-0 rounded-full border-2 border-white shadow-pogo-low bg-[#a3e635] flex items-center justify-center overflow-hidden">
+            <PokemonSprite id={1} name="Buddy" className="w-[120%] h-[120%] object-contain" />
             <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow border border-slate-200">
               <svg viewBox="0 0 24 24" width="12" height="12" fill={COLORS.red} aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
             </div>

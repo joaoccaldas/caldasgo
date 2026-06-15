@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
-import L, { type LeafletMouseEvent } from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useState, useRef, useEffect } from 'react';
+import Map, { Marker } from 'react-map-gl/maplibre';
+import type { MapRef } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 import HUD from '../components/HUD';
 import BottomNav from '../components/BottomNav';
@@ -15,33 +15,29 @@ import { useSpawning } from '../hooks/useSpawning';
 import { usePokestops } from '../hooks/usePokestops';
 import { useTrainer } from '../hooks/useTrainer';
 import { useCollection } from '../hooks/useCollection';
-import { getPogoSprite, getPokemonImage } from '../data/pokemonDatabase';
+import { getPogoSprite } from '../data/pokemonDatabase';
 import type { Pokestop, SpawnedPokemon } from '../types/index';
 
-// Leaflet marker fix - the default icon URLs point at bundler-relative assets
-// that don't exist, so we delete the private lookup and provide CDN URLs instead.
-// @ts-expect-error _getIconUrl is a private Leaflet implementation detail
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
-
-const LocationUpdater = ({ center }: { center: [number, number] }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, map.getZoom());
-  }, [center, map]);
-  return null;
-};
-
-// Helper component to capture map clicks
-const MapClickCapturer = ({ onClick }: { onClick: (e: LeafletMouseEvent) => void }) => {
-  useMapEvents({
-    click: onClick,
-  });
-  return null;
+// Custom MapLibre style using Carto Voyager (clean, no labels, game-like)
+const MAP_STYLE = {
+  version: 8 as const,
+  sources: {
+    'raster-tiles': {
+      type: 'raster' as const,
+      tiles: ['https://basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png'],
+      tileSize: 256,
+      attribution: '© OpenStreetMap, © CARTO'
+    }
+  },
+  layers: [
+    {
+      id: 'simple-tiles',
+      type: 'raster' as const,
+      source: 'raster-tiles',
+      minzoom: 0,
+      maxzoom: 22
+    }
+  ]
 };
 
 const MapScreen: React.FC = () => {
@@ -54,11 +50,20 @@ const MapScreen: React.FC = () => {
   const [encounter, setEncounter] = useState<SpawnedPokemon | null>(null);
   const [activeStop, setActiveStop] = useState<Pokestop | null>(null);
 
+  const mapRef = useRef<MapRef>(null);
+
   // Record an encounter as "seen" the moment the player taps a wild Pokémon.
   const openEncounter = (spawn: SpawnedPokemon) => {
     collection.recordSeen(spawn.speciesId);
     setEncounter(spawn);
   };
+
+  // Keep camera locked on player unless they drag.
+  useEffect(() => {
+    if (location && mapRef.current) {
+      mapRef.current.flyTo({ center: [location.lng, location.lat], duration: 800, essential: true });
+    }
+  }, [location]);
 
   // If GPS is completely blocked and hook hasn't yielded yet
   if (!location) {
@@ -71,9 +76,9 @@ const MapScreen: React.FC = () => {
   }
 
   // To simulate walking if mock is true
-  const handleMapClick = (e: LeafletMouseEvent) => {
+  const handleMapClick = (e: maplibregl.MapMouseEvent) => {
     if (isMock) {
-      setLocation({ lat: e.latlng.lat, lng: e.latlng.lng });
+      setLocation({ lat: e.lngLat.lat, lng: e.lngLat.lng });
     }
   };
 
@@ -81,114 +86,109 @@ const MapScreen: React.FC = () => {
     <div className="w-full h-[100dvh] relative overflow-hidden bg-gradient-to-b from-sky-300 via-sky-100 to-white">
       {/* Skybox horizon line to hide the map edge */}
       <div className="absolute top-0 left-0 w-full h-[35vh] bg-gradient-to-b from-sky-400/80 to-transparent z-[1] pointer-events-none" />
-
-      {/* The 100% Authentic PoGo Map CSS Filter wrapper */}
-      {/* We apply sepia/hue-rotate to force Google/Carto maps into the vivid PoGo green/blue aesthetic */}
-      <div 
-        className="absolute z-0 pogo-map-filter"
-        style={{
-          // Force 3D pitch. We scale up the map massively so the edges don't show when tilted back.
-          width: '200%',
-          height: '200%',
-          left: '-50%',
-          top: '-30%',
-          transform: 'perspective(800px) rotateX(60deg) scale(1.2)',
-          transformOrigin: '50% 50%',
-        }}
-      >
-        <MapContainer
-          center={[location.lat, location.lng]}
-          zoom={18}
-          zoomControl={false}
-          className="w-full h-full"
+      
+      {/* The 100% Authentic PoGo Map Wrapper */}
+      <div className="absolute inset-0 z-0 pogo-map-filter bg-[#aee2ff]">
+        <Map
+          ref={mapRef}
+          initialViewState={{
+            longitude: location.lng,
+            latitude: location.lat,
+            zoom: 17.5,
+            pitch: 60,
+            bearing: 0
+          }}
+          mapStyle={MAP_STYLE}
+          style={{ width: '100%', height: '100%' }}
+          interactive={true}
+          onClick={handleMapClick}
+          dragRotate={true}
+          pitchWithRotate={true}
+          maxPitch={85}
+          attributionControl={false}
         >
-          {/* Use Voyager No Labels for a clean video game look */}
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png"
-            attribution=""
-          />
-          <LocationUpdater center={[location.lat, location.lng]} />
-
-          {/* Capture map clicks for mock walking */}
-          <MapClickCapturer onClick={handleMapClick} />
-
           {/* Render PokéStops using the real Pokémon GO map-pin artwork */}
           {pokestops.map((stop: Pokestop) => {
             const spinnable = isSpinable(stop);
-            const stopIcon = L.divIcon({
-              html: `
-                <div class="relative flex flex-col items-center -ml-6 -mt-[60px] cursor-pointer hover:scale-105 transition-transform origin-bottom" style="transform: rotateX(-60deg) scale(1.5) translateY(10px);">
-                  <img
-                    src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Pokestops%20and%20Gyms/pokestop_near.png"
-                    alt="PokéStop"
-                    class="w-12 h-[60px] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)] ${spinnable ? '' : 'grayscale opacity-60'}"
-                  />
-                </div>
-              `,
-              className: 'custom-pokestop-icon',
-              iconSize: [48, 60],
-            });
             return (
               <Marker
                 key={stop.id}
-                position={[stop.lat, stop.lng]}
-                icon={stopIcon}
-                eventHandlers={{ click: () => setActiveStop(stop) }}
-              />
+                longitude={stop.lng}
+                latitude={stop.lat}
+                anchor="bottom"
+                pitchAlignment="viewport"
+                rotationAlignment="viewport"
+                onClick={(e) => {
+                  e.originalEvent.stopPropagation();
+                  setActiveStop(stop);
+                }}
+                style={{ cursor: 'pointer', zIndex: 10 }}
+              >
+                <div className="relative flex flex-col items-center hover:scale-105 transition-transform origin-bottom drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]">
+                  <img
+                    src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Pokestops%20and%20Gyms/pokestop_near.png"
+                    alt="PokéStop"
+                    className={`w-12 h-[60px] object-contain ${spinnable ? '' : 'grayscale opacity-60'}`}
+                  />
+                </div>
+              </Marker>
             );
           })}
 
           {/* Render Spawns */}
           {spawnedPokemon.map((spawn: SpawnedPokemon) => {
-            // Real PoGo sprite first, falling back to official artwork, then basic sprite.
             const pogo = getPogoSprite(spawn.speciesId);
-            const artwork = getPokemonImage(spawn.speciesId);
             const basic = `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/${spawn.speciesId}.png`;
-            const icon = L.divIcon({
-              html: `
-                <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4 origin-bottom" style="transform: rotateX(-60deg) scale(1.5) translateY(10px);">
-                  <div class="pulse-ring"></div>
-                  <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-black/30 rounded-[100%] blur-[1px] z-0"></div>
-                  <img src="${pogo}" alt="${spawn.species.name}" class="relative w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" onerror="this.onerror=function(){this.onerror=null;this.src='${basic}'};this.src='${artwork}'" />
-                </div>
-              `,
-              className: 'custom-pokemon-icon',
-              iconSize: [64, 64],
-            });
 
             return (
               <Marker
                 key={spawn.id}
-                position={[spawn.lat, spawn.lng]}
-                icon={icon}
-                eventHandlers={{ click: () => openEncounter(spawn) }}
-              />
+                longitude={spawn.lng}
+                latitude={spawn.lat}
+                anchor="bottom"
+                pitchAlignment="viewport"
+                rotationAlignment="viewport"
+                onClick={(e) => {
+                  e.originalEvent.stopPropagation();
+                  openEncounter(spawn);
+                }}
+                style={{ cursor: 'pointer', zIndex: 20 }}
+              >
+                <div className="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform origin-bottom">
+                  <div className="pulse-ring pointer-events-none"></div>
+                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-black/30 rounded-[100%] blur-[1px] z-0 pointer-events-none"></div>
+                  <img 
+                    src={pogo} 
+                    alt={spawn.species.name} 
+                    className="relative w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" 
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = basic; }}
+                  />
+                </div>
+              </Marker>
             );
           })}
 
           {/* Trainer Avatar Standee on the map */}
           <Marker
-            position={[location.lat, location.lng]}
-            interactive={false}
-            icon={L.divIcon({
-              html: `
-                <div class="relative flex flex-col items-center origin-bottom" style="transform: rotateX(-60deg) scale(1.5) translateY(10px);">
-                  <div class="absolute bottom-1 w-12 h-4 bg-black/30 rounded-[100%] blur-[2px] z-0"></div>
-                  <img
-                    src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
-                    alt="You"
-                    class="relative w-16 h-16 object-contain drop-shadow-[0_5px_8px_rgba(0,0,0,0.4)] z-10"
-                    onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/25.png';"
-                  />
-                  <!-- Authentic radar pulse under trainer -->
-                  <div class="absolute top-1/2 left-1/2 w-[120px] h-[120px] -ml-[60px] -mt-[60px] rounded-full border-[3px] border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.5)] animate-[pulse-ring_3s_infinite_cubic-bezier(0.215,0.61,0.355,1)] pointer-events-none z-0"></div>
-                </div>
-              `,
-              className: 'custom-trainer-icon',
-              iconSize: [64, 64],
-            })}
-          />
-        </MapContainer>
+            longitude={location.lng}
+            latitude={location.lat}
+            anchor="bottom"
+            pitchAlignment="viewport"
+            rotationAlignment="viewport"
+            style={{ zIndex: 30, pointerEvents: 'none' }}
+          >
+            <div className="relative flex flex-col items-center origin-bottom drop-shadow-[0_5px_8px_rgba(0,0,0,0.4)]">
+              <div className="absolute bottom-1 w-12 h-4 bg-black/30 rounded-[100%] blur-[2px] z-0"></div>
+              <img
+                src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
+                alt="You"
+                className="relative w-16 h-16 object-contain z-10"
+              />
+              {/* Authentic radar pulse under trainer */}
+              <div className="absolute top-1/2 left-1/2 w-[120px] h-[120px] -ml-[60px] -mt-[60px] rounded-full border-[3px] border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.5)] animate-[pulse-ring_3s_infinite_cubic-bezier(0.215,0.61,0.355,1)] pointer-events-none z-0"></div>
+            </div>
+          </Marker>
+        </Map>
 
         {/* A soft green wash unifies the map into Pokémon GO's signature
             daytime palette regardless of the base tile colors. */}
@@ -198,12 +198,10 @@ const MapScreen: React.FC = () => {
         />
       </div>
 
-      {/* CSS injection for the authentic map filter.
-          We filter ONLY the tile layer (not markers) so the land takes on the
-          vivid Pokémon GO green while the Pokémon sprites stay crisp and full-color. */}
       <style>{`
-        .pogo-map-filter .leaflet-tile-pane {
-          filter: sepia(55%) hue-rotate(52deg) saturate(1.5) brightness(1.04) contrast(1.03);
+        /* MapLibre Map style tweaks */
+        .maplibregl-canvas {
+          filter: sepia(35%) hue-rotate(52deg) saturate(1.8) brightness(1.05) contrast(1.03);
         }
         @keyframes pulse-ring {
           0% { transform: scale(0.33); opacity: 1; }
