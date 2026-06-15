@@ -12,14 +12,14 @@ const InventoryScreen: React.FC<InventoryScreenProps> = ({ onClose }) => {
 
   // Fake some other items to make the inventory look full and authentic
   const allItems = [
-    { id: 1, name: 'Potion', count: 12, image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png', desc: 'A spray-type medicine for treating wounds. It can be used to restore 20 HP to a single Pokémon.' },
-    { id: 2, name: 'Super Potion', count: 5, image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/super-potion.png', desc: 'A spray-type medicine for treating wounds. It can be used to restore 50 HP to a single Pokémon.' },
-    { id: 3, name: 'Revive', count: 3, image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/revive.png', desc: 'A medicine that can revive fainted Pokémon. It also restores half of a fainted Pokémon\'s maximum HP.' },
-    { id: 4, name: 'Poké Ball', count: inventory.pokeballs, image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png', desc: 'A device for catching wild Pokémon. It\'s thrown like a ball at a Pokémon, comfortably encapsulating its target.' },
-    { id: 5, name: 'Great Ball', count: 15, image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png', desc: 'A good, high-performance Poké Ball that provides a higher Pokémon catch rate than a standard Poké Ball.' },
-    { id: 6, name: 'Ultra Ball', count: 8, image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png', desc: 'An ultra-high-performance Poké Ball that provides a higher success rate for catching Pokémon than a Great Ball.' },
-    { id: 7, name: 'Razz Berry', count: inventory.razzBerries, image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/razz-berry.png', desc: 'Feed this to a wild Pokémon to make it easier to catch.' },
-    { id: 8, name: 'Golden Razz Berry', count: 2, image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/golden-razz-berry.png', desc: 'Feed this to a wild Pokémon to make it much easier to catch.' },
+    { id: 1, name: 'Potion', count: 12, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/potion.png', desc: 'A spray-type medicine for treating wounds. It can be used to restore 20 HP to a single Pokémon.' },
+    { id: 2, name: 'Super Potion', count: 5, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/super-potion.png', desc: 'A spray-type medicine for treating wounds. It can be used to restore 50 HP to a single Pokémon.' },
+    { id: 3, name: 'Revive', count: 3, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/revive.png', desc: 'A medicine that can revive fainted Pokémon. It also restores half of a fainted Pokémon\'s maximum HP.' },
+    { id: 4, name: 'Poké Ball', count: inventory.pokeballs, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/poke-ball.png', desc: 'A device for catching wild Pokémon. It\'s thrown like a ball at a Pokémon, comfortably encapsulating its target.' },
+    { id: 5, name: 'Great Ball', count: 15, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/great-ball.png', desc: 'A good, high-performance Poké Ball that provides a higher Pokémon catch rate than a standard Poké Ball.' },
+    { id: 6, name: 'Ultra Ball', count: 8, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/ultra-ball.png', desc: 'An ultra-high-performance Poké Ball that provides a higher success rate for catching Pokémon than a Great Ball.' },
+    { id: 7, name: 'Razz Berry', count: inventory.razzBerries, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/razz-berry.png', desc: 'Feed this to a wild Pokémon to make it easier to catch.' },
+    { id: 8, name: 'Golden Razz Berry', count: 2, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/golden-razz-berry.png', desc: 'Feed this to a wild Pokémon to make it much easier to catch.' },
   ];
 
   return (
@@ -76,7 +76,7 @@ const InventoryScreen: React.FC<InventoryScreenProps> = ({ onClose }) => {
           className="w-[72px] h-[72px] flex items-center justify-center bg-transparent border-none"
         >
            <img 
-             src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Menu%20Icons/btn_close_normal.png" 
+             src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_close_normal.png" 
              alt="Close" 
              className="w-full h-full object-contain drop-shadow-lg"
            />

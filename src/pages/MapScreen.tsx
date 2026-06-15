@@ -131,7 +131,7 @@ const MapScreen: React.FC = () => {
             // Real PoGo sprite first, falling back to official artwork, then basic sprite.
             const pogo = getPogoSprite(spawn.speciesId);
             const artwork = getPokemonImage(spawn.speciesId);
-            const basic = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spawn.speciesId}.png`;
+            const basic = `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/${spawn.speciesId}.png`;
             const icon = L.divIcon({
               html: `
                 <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4">
@@ -181,10 +181,10 @@ const MapScreen: React.FC = () => {
          {/* Avatar disc */}
          <div className="relative w-14 h-14 rounded-full bg-gradient-to-b from-[#48b6e0] to-[#2a86b8] border-[3px] border-white shadow-lg overflow-hidden flex items-end justify-center">
             <img
-              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+              src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
               alt="You"
               className="w-[115%] h-[115%] object-cover -mb-1"
-              onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'; }}
+              onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/25.png'; }}
             />
          </div>
          {/* Fake GPS Mock Indicator */}

@@ -347,7 +347,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                {bestOwned && (
                  <>
                    <div className="w-full px-8 flex justify-center gap-3 mb-6 items-center">
-                     <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-8 h-8 drop-shadow-sm" />
+                     <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-8 h-8 drop-shadow-sm" />
                      <span className="font-black text-slate-800 text-xl">{candies[selectedSpecies.family] || 0}</span>
                      <span className="text-slate-400 font-bold text-xs tracking-wider uppercase">{selectedSpecies.family} CANDY</span>
                    </div>
@@ -376,7 +376,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                                {evo.item && <span className="block text-[10px] font-bold normal-case opacity-80">Requires {evo.item}</span>}
                              </span>
                              <div className="flex items-center gap-1 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-lg">
-                               <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" />
+                               <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" />
                                <span>{evo.candyCost}</span>
                              </div>
                            </button>

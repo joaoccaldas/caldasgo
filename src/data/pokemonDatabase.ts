@@ -812,19 +812,19 @@ export function getSpecies(id: number): PokemonSpecies | undefined {
 
 /** Official artwork image for a given Pokédex id. */
 export function getPokemonImage(id: number): string {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+  return `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/${id}.png`;
 }
 
 /** Shiny official artwork for a given Pokédex id. */
 export function getShinyPokemonImage(id: number): string {
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${id}.png`;
+  return `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/shiny/${id}.png`;
 }
 
 // Real Pokémon GO game sprites, ripped from the live client by PokeMiners.
 // These are the actual in-game models, available for dex #1–#~899; higher
 // gen-8/9 numbers fall back to PokeAPI artwork via the <PokemonSprite> chain.
-const POGO_SPRITE_BASE = 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokemon';
-const POGO_TYPE_BASE = 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Types';
+const POGO_SPRITE_BASE = 'https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Pokemon';
+const POGO_TYPE_BASE = 'https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Types';
 
 /** Authentic Pokémon GO in-game sprite for a given Pokédex id. */
 export function getPogoSprite(id: number, shiny = false): string {

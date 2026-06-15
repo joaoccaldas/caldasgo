@@ -16,7 +16,7 @@ interface PokemonStorageScreenProps {
   onPowerUp: (uid: string) => Promise<boolean>;
 }
 
-const CANDY_ICON = 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png';
+const CANDY_ICON = 'https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png';
 
 // Stardust is a glowing teal four-point sparkle in the real game.
 const StardustIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -151,7 +151,7 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
           className="w-[72px] h-[72px] flex items-center justify-center bg-transparent border-none"
         >
           <img
-            src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Menu%20Icons/btn_close_normal.png"
+            src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_close_normal.png"
             alt="Close"
             className="w-full h-full object-contain drop-shadow-lg"
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -378,7 +378,7 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                           {evo.item && <span className="block text-[10px] font-bold normal-case opacity-80">Requires {evo.item}</span>}
                         </span>
                         <div className="flex items-center gap-1 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-lg">
-                          <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                          <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                           <span>{evo.candyCost}</span>
                         </div>
                       </button>

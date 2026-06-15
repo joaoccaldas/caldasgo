@@ -1,7 +1,7 @@
 import { getPogoSprite, getPokemonImage, getShinyPokemonImage } from '../data/pokemonDatabase';
 
-const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
-const FALLBACK_ICON = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png';
+const SPRITE_BASE = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
+const FALLBACK_ICON = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/poke-ball.png';
 
 interface PokemonSpriteProps {
   id: number;

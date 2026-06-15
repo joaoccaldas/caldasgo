@@ -35,10 +35,10 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
           {/* Avatar Image (Pikachu placeholder for trainer face) */}
           <div className="absolute inset-[6px] rounded-full border-2 border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden bg-slate-800">
             <img
-              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+              src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
               alt="Avatar"
               className="w-[120%] h-[120%] object-cover -ml-1 -mt-1"
-              onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'; }}
+              onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/25.png'; }}
             />
           </div>
           {/* Level Badge */}
@@ -94,10 +94,10 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
           className="w-[84px] h-[84px] relative flex items-center justify-center pointer-events-auto transform translate-y-2"
         >
            <img 
-             src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Menu%20Icons/btn_action_menu.png" 
+             src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_action_menu.png" 
              alt="Main Menu" 
              className="w-full h-full object-contain drop-shadow-xl"
-             onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" }}
+             onError={(e) => { e.currentTarget.src = "https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/poke-ball.png" }}
            />
         </motion.button>
 
