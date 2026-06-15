@@ -48,20 +48,11 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
         </div>
       </div>
 
-      {/* Top Right: Compass & Weather */}
+      {/* Top Right: Weather boost badge (authentic PoGo) */}
       <div className="absolute top-12 right-4 z-[400] flex flex-col gap-3 pointer-events-auto items-end">
-        {/* Compass */}
-        <div className="w-11 h-11 bg-white/95 backdrop-blur rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.4)] flex items-center justify-center border border-slate-200/50 cursor-pointer hover:bg-slate-50 transition-colors relative overflow-hidden">
-          <div className="absolute inset-0 rounded-full border-[2px] border-slate-300 opacity-50 m-1"></div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(45deg)' }}><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/></svg>
-        </div>
         {/* Weather */}
-        <div className="w-12 h-12 bg-[#2dd4bf]/90 backdrop-blur rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.4)] flex items-center justify-center border border-white/50 cursor-pointer hover:bg-[#2dd4bf] transition-colors mt-2">
+        <div className="w-12 h-12 bg-[#2dd4bf]/90 backdrop-blur rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.4)] flex items-center justify-center border border-white/50 cursor-pointer hover:bg-[#2dd4bf] transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/><circle cx="12" cy="12" r="4"/></svg>
-        </div>
-        {/* Campfire (Optional Map Addon) */}
-        <div className="w-10 h-10 bg-slate-800/80 backdrop-blur rounded-full shadow-lg flex items-center justify-center border border-slate-600/50 mt-1">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2c-1.5 2-4 4-4 8s2.5 6 4 6 4-2 4-6-2.5-6-4-8z"/><path d="M12 22v-6"/></svg>
         </div>
       </div>
 
