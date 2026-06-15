@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { getPogoSprite, getPokemonImage, getShinyPokemonImage } from '../data/pokemonDatabase';
 
 const SPRITE_BASE = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/';
@@ -22,27 +23,30 @@ interface PokemonSpriteProps {
  * broken-image glyph. The starting point depends on `variant`, but every chain
  * ends at: PoGo sprite -> PokeAPI official artwork -> basic sprite -> Poké Ball.
  */
-const PokemonSprite: React.FC<PokemonSpriteProps> = ({ id, name, shiny, className }) => {
+const PokemonSprite: React.FC<PokemonSpriteProps> = ({ id, name, shiny, className, variant = 'icon' }) => {
   const pogo = getPogoSprite(id, shiny);
   const artwork = shiny ? getShinyPokemonImage(id) : getPokemonImage(id);
   const basic = shiny ? `${SPRITE_BASE}shiny/${id}.png` : `${SPRITE_BASE}${id}.png`;
-  // Always prioritize the authentic 3D Pokémon GO sprite.
-  // The onError chain will gracefully fall back to official artwork if the PoGo sprite fails to load.
-  const initial = pogo;
+
+  const sources = variant === 'artwork'
+    ? [artwork, pogo, basic, FALLBACK_ICON]
+    : [pogo, artwork, basic, FALLBACK_ICON];
+
+  const [srcIndex, setSrcIndex] = useState(0);
+
+  // Reset if pokemon changes
+  useEffect(() => {
+    setSrcIndex(0);
+  }, [id, shiny, variant]);
 
   return (
     <img
-      src={initial}
+      src={sources[srcIndex]}
       alt={name}
       className={className}
-      onError={(e) => {
-        const img = e.currentTarget;
-        if (img.src === pogo) {
-          img.src = artwork;
-        } else if (img.src === artwork) {
-          img.src = basic;
-        } else if (img.src !== FALLBACK_ICON) {
-          img.src = FALLBACK_ICON;
+      onError={() => {
+        if (srcIndex < sources.length - 1) {
+          setSrcIndex(srcIndex + 1);
         }
       }}
     />
