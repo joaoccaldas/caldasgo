@@ -11,8 +11,7 @@ const SafetyScreen: React.FC<SafetyScreenProps> = ({ onAccept }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[950] flex items-center justify-center px-8"
-      style={{ background: 'linear-gradient(160deg, #6bbf9b 0%, #2f8a8f 100%)' }}
+      className="absolute inset-0 z-[950] flex items-center justify-center px-8 bg-[#0b2a3a]/80 backdrop-blur-md"
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}

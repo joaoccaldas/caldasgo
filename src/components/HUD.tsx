@@ -38,13 +38,12 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
               style={{ filter: 'drop-shadow(0 0 3px rgba(252,211,77,0.8))', transition: 'stroke-dashoffset 0.4s ease' }}
             />
           </svg>
-          {/* Avatar Image (Pikachu placeholder for trainer face) */}
-          <div className="absolute inset-[6px] rounded-full border-2 border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden bg-slate-800">
+          {/* Authentic Trainer Avatar Image */}
+          <div className="absolute inset-[5px] rounded-full border-[3px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden bg-sky-300">
             <img
-              src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
+              src="https://archives.bulbagarden.net/media/upload/thumb/f/f6/GO_Male_avatar_1.png/200px-GO_Male_avatar_1.png"
               alt="Avatar"
-              className="w-[120%] h-[120%] object-cover -ml-1 -mt-1"
-              onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/25.png'; }}
+              className="w-[160%] h-[160%] object-cover -ml-4 mt-1"
             />
           </div>
           {/* Level Badge */}
@@ -57,9 +56,9 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
       {/* Top Right: Currency + weather (authentic PoGo) */}
       <div className="absolute top-12 right-4 z-[400] flex flex-col gap-3 pointer-events-auto items-end">
         {/* Stardust currency pill */}
-        <div className="bg-pogo-glass backdrop-blur-md rounded-pogo-pill shadow-pogo-mid border border-pogo-glass-border flex items-center gap-1.5 pl-2 pr-3 h-9">
-          <StardustIcon className="w-5 h-5" />
-          <span className="font-display font-extrabold text-sm text-pogo-navy tracking-wide">{stardust.toLocaleString()}</span>
+        <div className="bg-pogo-glass backdrop-blur-md rounded-pogo-pill shadow-[0_2px_8px_rgba(11,42,58,0.25)] border border-pogo-glass-border flex items-center gap-1 pl-1.5 pr-3 h-8">
+          <StardustIcon className="w-[18px] h-[18px]" />
+          <span className="font-display font-extrabold text-[13px] text-pogo-navy tracking-wide leading-none pt-[1px]">{stardust.toLocaleString()}</span>
         </div>
         {/* Weather */}
         <div className="w-12 h-12 bg-white/30 backdrop-blur rounded-full shadow-pogo-mid flex items-center justify-center border border-white/50 cursor-pointer hover:bg-white/40 transition-colors overflow-hidden">

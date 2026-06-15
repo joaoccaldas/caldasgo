@@ -134,7 +134,8 @@ const MapScreen: React.FC = () => {
             const icon = L.divIcon({
               html: `
                 <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4">
-                  <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-black/25 rounded-[100%] blur-[1px]"></div>
+                  <div class="pulse-ring"></div>
+                  <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-black/30 rounded-[100%] blur-[1px] z-0"></div>
                   <img src="${pogo}" alt="${spawn.species.name}" class="relative w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" onerror="this.onerror=function(){this.onerror=null;this.src='${basic}'};this.src='${artwork}'" />
                 </div>
               `,

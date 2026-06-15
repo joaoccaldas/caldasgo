@@ -41,26 +41,30 @@ const InventoryScreen: React.FC<InventoryScreenProps> = ({ onClose }) => {
       </div>
 
       {/* Scrolling List */}
-      <div className="flex-1 overflow-y-auto px-2 pt-2 pb-24">
-        <div className="flex flex-col gap-2">
+      <div className="flex-1 overflow-y-auto pb-24 bg-white">
+        <div className="flex flex-col">
           {allItems.map(item => (
-            <div key={item.id} className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 flex items-center gap-4 active:scale-[0.98] transition-transform cursor-pointer">
+            <div key={item.id} className="bg-white border-b-2 border-slate-100 p-3 pl-4 flex items-center gap-4 active:bg-slate-50 transition-colors cursor-pointer relative">
               
               {/* Item Icon */}
               <div className="w-16 h-16 shrink-0 relative flex items-center justify-center">
-                <img src={item.image} alt={item.name} className="w-[120%] h-[120%] object-contain drop-shadow-md z-10" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-sky-100 to-transparent rounded-full z-0 opacity-50" />
+                <img src={item.image} alt={item.name} className="w-[110%] h-[110%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] z-10" />
               </div>
 
               {/* Item Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="font-black text-slate-800 tracking-wide text-lg truncate">{item.name}</h3>
-                  <span className="font-black text-slate-500 text-lg ml-2">x{item.count}</span>
-                </div>
-                <p className="text-slate-400 text-xs font-medium leading-tight line-clamp-2">
+              <div className="flex-1 min-w-0 pr-2">
+                <h3 className="font-bold text-[#1b4353] tracking-wide text-[16px] truncate leading-tight mb-1">{item.name}</h3>
+                <p className="text-slate-500 text-[11px] font-medium leading-[1.3] line-clamp-2">
                   {item.desc}
                 </p>
+              </div>
+
+              {/* Quantity & Trash */}
+              <div className="shrink-0 flex flex-col items-center justify-between h-[60px] pl-1 pr-1 border-l border-slate-100">
+                <span className="font-display font-black text-slate-700 text-lg leading-none mt-1">x{item.count}</span>
+                <button className="w-8 h-8 rounded-full flex items-center justify-center opacity-40 hover:opacity-100 hover:bg-slate-100 active:scale-90 transition-all">
+                   <svg viewBox="0 0 24 24" width="18" height="18" stroke="#0b2a3a" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
               </div>
 
             </div>

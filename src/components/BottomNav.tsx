@@ -22,39 +22,22 @@ const PokeBallIcon = () => (
 
 /** Filled red Pokédex device glyph. */
 const PokedexFillIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-7 h-7" aria-hidden="true">
-    <rect x="3" y="3" width="18" height="18" rx="5" fill="#ff5b6e" />
-    <circle cx="9" cy="8.5" r="2.6" fill="#fff" />
-    <circle cx="9" cy="8.5" r="1.2" fill="#3b82f6" />
-    <rect x="13.5" y="6.5" width="6" height="2" rx="1" fill="#fff" />
-    <rect x="6" y="13.5" width="12" height="2" rx="1" fill="#fff" />
-    <rect x="6" y="17" width="12" height="2" rx="1" fill="#fff" />
-  </svg>
+  <img src="https://archives.bulbagarden.net/media/upload/b/b2/GO_Pok%C3%A9dex_icon.png" alt="Pokédex" className="w-[42px] h-[42px] object-contain drop-shadow-md" onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/pokedex.png'; }} />
 );
 
 /** Filled backpack / item bag glyph. */
 const BagFillIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-7 h-7" aria-hidden="true">
-    <rect x="4" y="8" width="16" height="13" rx="4" fill="#f59e0b" />
-    <path d="M8 8V6a4 4 0 0 1 8 0v2" stroke="#f59e0b" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-    <rect x="9" y="11" width="6" height="3.5" rx="1.5" fill="#fff" />
-  </svg>
+  <img src="https://archives.bulbagarden.net/media/upload/d/d4/GO_Items_icon.png" alt="Items" className="w-[42px] h-[42px] object-contain drop-shadow-md" onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/potion.png'; }} />
 );
 
 /** Filled shopping bag glyph for the Shop shortcut. */
 const ShopFillIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-7 h-7" aria-hidden="true">
-    <path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" fill="#8b5cf6" />
-    <path d="M8.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="#8b5cf6" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-  </svg>
+  <img src="https://archives.bulbagarden.net/media/upload/2/22/GO_Shop_icon.png" alt="Shop" className="w-[42px] h-[42px] object-contain drop-shadow-md" />
 );
 
 /** Filled shield-and-star glyph for the Battle League shortcut. */
 const BattleFillIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-7 h-7" aria-hidden="true">
-    <path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z" fill="#3b82f6" />
-    <path d="M12 7.5l1.8 3.6 4 .5-2.9 2.8.7 4-3.6-1.9-3.6 1.9.7-4-2.9-2.8 4-.5z" fill="#fcd34d" />
-  </svg>
+  <img src="https://archives.bulbagarden.net/media/upload/9/91/GO_Battle_icon.png" alt="Battle" className="w-[42px] h-[42px] object-contain drop-shadow-md" />
 );
 
 interface FanButton {

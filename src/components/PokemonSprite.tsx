@@ -22,11 +22,13 @@ interface PokemonSpriteProps {
  * broken-image glyph. The starting point depends on `variant`, but every chain
  * ends at: PoGo sprite -> PokeAPI official artwork -> basic sprite -> Poké Ball.
  */
-const PokemonSprite: React.FC<PokemonSpriteProps> = ({ id, name, shiny, className, variant = 'icon' }) => {
+const PokemonSprite: React.FC<PokemonSpriteProps> = ({ id, name, shiny, className }) => {
   const pogo = getPogoSprite(id, shiny);
   const artwork = shiny ? getShinyPokemonImage(id) : getPokemonImage(id);
   const basic = shiny ? `${SPRITE_BASE}shiny/${id}.png` : `${SPRITE_BASE}${id}.png`;
-  const initial = variant === 'artwork' ? artwork : pogo;
+  // Always prioritize the authentic 3D Pokémon GO sprite.
+  // The onError chain will gracefully fall back to official artwork if the PoGo sprite fails to load.
+  const initial = pogo;
 
   return (
     <img
@@ -35,22 +37,12 @@ const PokemonSprite: React.FC<PokemonSpriteProps> = ({ id, name, shiny, classNam
       className={className}
       onError={(e) => {
         const img = e.currentTarget;
-        if (variant === 'artwork') {
-          if (img.src === artwork) {
-            img.src = pogo;
-          } else if (img.src === pogo) {
-            img.src = basic;
-          } else if (img.src !== FALLBACK_ICON) {
-            img.src = FALLBACK_ICON;
-          }
-        } else {
-          if (img.src === pogo) {
-            img.src = artwork;
-          } else if (img.src === artwork) {
-            img.src = basic;
-          } else if (img.src !== FALLBACK_ICON) {
-            img.src = FALLBACK_ICON;
-          }
+        if (img.src === pogo) {
+          img.src = artwork;
+        } else if (img.src === artwork) {
+          img.src = basic;
+        } else if (img.src !== FALLBACK_ICON) {
+          img.src = FALLBACK_ICON;
         }
       }}
     />

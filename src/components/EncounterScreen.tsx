@@ -107,11 +107,19 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
       exit={{ opacity: 0 }}
       className="absolute inset-0 z-[800] overflow-hidden bg-sky-100 flex flex-col"
     >
-      {/* 1:1 Authentic Encounter Background Image */}
-      <div
-        className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/caldasgo/pogo_encounter_bg.png)' }}
-      />
+      {/* 1:1 Authentic Encounter Background */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
+        {/* Sky */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#60c4ff] to-[#c6f0ff]" />
+        {/* Clouds */}
+        <div className="absolute top-1/4 left-1/4 w-32 h-12 bg-white/50 rounded-full blur-xl" />
+        <div className="absolute top-1/3 right-1/4 w-48 h-16 bg-white/40 rounded-full blur-xl" />
+        {/* Grass Horizon */}
+        <div className="absolute bottom-0 w-[200%] h-[45%] bg-gradient-to-b from-[#8fe45c] to-[#3ca032] rounded-t-[100%] -left-1/2 shadow-[inset_0_10px_20px_rgba(255,255,255,0.3)]">
+           {/* Ground texture overlay */}
+           <div className="w-full h-full opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-black via-transparent to-transparent mix-blend-overlay"></div>
+        </div>
+      </div>
 
       {/* Top HUD: Exact Placement */}
       <div className="relative w-full flex justify-between items-start p-5 pt-12 z-10 pointer-events-auto">
@@ -246,15 +254,15 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
               <button
                 onClick={handleUseBerry}
                 disabled={catching || berryActive || inventory.razzBerries === 0}
-                className={`w-[52px] h-[52px] rounded-full flex flex-col items-center justify-center transition-all ${
+                className={`w-14 h-14 rounded-full flex flex-col items-center justify-center transition-all ${
                   catching || berryActive || inventory.razzBerries === 0
-                    ? 'bg-slate-600/50 grayscale opacity-50'
-                    : 'bg-white/95 shadow-[0_4px_15px_rgba(0,0,0,0.3)] border-[3px] border-slate-200 hover:scale-105 active:scale-95 backdrop-blur'
+                    ? 'bg-slate-900/60 grayscale opacity-50 border-2 border-white/30'
+                    : 'bg-slate-900/60 border-2 border-white/50 hover:scale-105 active:scale-95 backdrop-blur-md shadow-lg'
                 }`}
               >
-                <div className="relative">
-                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ec4899" stroke="#be185d" strokeWidth="1" className="w-7 h-7"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                   <div className="absolute -top-1 -right-2 bg-slate-800 text-white text-[9px] font-bold px-1.5 rounded-full border border-slate-500">{inventory.razzBerries}</div>
+                <div className="relative flex items-center justify-center w-full h-full">
+                   <img src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/razz-berry.png" alt="Razz Berry" className="w-9 h-9 object-contain drop-shadow-md" />
+                   <div className="absolute top-0 right-0 bg-white text-slate-800 text-[10px] font-black px-1.5 py-0.5 leading-none rounded-full shadow-sm">{inventory.razzBerries}</div>
                 </div>
               </button>
             </div>
@@ -285,12 +293,9 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
 
             {/* Ball Selector (Bottom Right) */}
             <div className="absolute right-6 bottom-8 pointer-events-auto flex flex-col items-center">
-              <div className="w-[52px] h-[52px] rounded-full bg-white/95 backdrop-blur shadow-[0_4px_15px_rgba(0,0,0,0.3)] border-[3px] border-slate-200 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-transform overflow-hidden relative">
-                <div className="w-[85%] h-[85%] rounded-full bg-[#ef4444] border-2 border-slate-800 relative overflow-hidden">
-                  <div className="w-full h-1/2 bg-white absolute bottom-0 border-t-2 border-slate-800" />
-                  <div className="w-3 h-3 bg-white rounded-full absolute border-2 border-slate-800 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                </div>
-                <div className="absolute -top-1 -right-1 bg-slate-800 text-white text-[9px] font-bold px-1.5 rounded-full border border-slate-500 z-10">{inventory.pokeballs}</div>
+              <div className="w-14 h-14 rounded-full bg-slate-900/60 backdrop-blur-md shadow-lg border-2 border-white/50 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-transform relative">
+                <img src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/poke-ball.png" alt="Pokeball" className="w-10 h-10 object-contain drop-shadow-md" />
+                <div className="absolute top-0 right-0 bg-white text-slate-800 text-[10px] font-black px-1.5 py-0.5 leading-none rounded-full shadow-sm z-10">{inventory.pokeballs}</div>
               </div>
             </div>
           </>

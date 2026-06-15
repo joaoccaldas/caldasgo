@@ -82,7 +82,7 @@ const PokestopScreen: React.FC<PokestopScreenProps> = ({ pokestop, isSpinable, o
             <circle cx="100" cy="100" r="98" fill="none" stroke={isSpinable ? '#38bdf8' : '#a855f7'} strokeWidth="3" strokeDasharray="2 10" opacity="0.8" />
           </svg>
           {/* Landmark photo */}
-          <div className={`w-44 h-44 rounded-full overflow-hidden border-[6px] ${isSpinable ? 'border-sky-300' : 'border-purple-300'} shadow-inner bg-slate-700`}>
+          <div className={`w-44 h-44 rounded-full overflow-hidden border-[8px] ${isSpinable ? 'border-[#e2e8f0] border-b-[#94a3b8]' : 'border-[#e9d5ff] border-b-[#c084fc]'} shadow-[inset_0_4px_10px_rgba(0,0,0,0.5)] bg-slate-700 relative z-10`}>
             <img
               src={`https://picsum.photos/seed/${pokestop.photoSeed}/300/300`}
               alt={pokestop.name}
@@ -109,28 +109,38 @@ const PokestopScreen: React.FC<PokestopScreenProps> = ({ pokestop, isSpinable, o
         {/* Rewards Popups */}
         <AnimatePresence>
           {rewards && (
-            <motion.div
-              initial={{ y: 40, opacity: 0, scale: 0.6 }}
-              animate={{ y: -60, opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute top-1/4 flex flex-col items-center gap-3"
-            >
-              <div className="bg-slate-800 border-2 border-yellow-400 rounded-full px-4 py-1.5 font-bold text-yellow-300 shadow-xl text-sm tracking-wide">
-                +{rewards.xp} XP
-              </div>
-              <div className="flex gap-3">
-                {rewards.pokeballs > 0 && (
-                  <div className="bg-slate-800 border-2 border-slate-600 rounded-full pl-1.5 pr-3 py-1 font-bold text-white shadow-xl flex items-center gap-1.5">
-                    <img src={`${ITEM_SPRITE_BASE}poke-ball.png`} alt="Poké Ball" className="w-7 h-7 object-contain" /> +{rewards.pokeballs}
-                  </div>
-                )}
-                {rewards.razzBerries > 0 && (
-                  <div className="bg-slate-800 border-2 border-slate-600 rounded-full pl-1.5 pr-3 py-1 font-bold text-white shadow-xl flex items-center gap-1.5">
-                     <img src={`${ITEM_SPRITE_BASE}razz-berry.png`} alt="Razz Berry" className="w-7 h-7 object-contain" /> +{rewards.razzBerries}
-                  </div>
-                )}
-              </div>
-            </motion.div>
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-50">
+              {rewards.pokeballs > 0 && Array.from({ length: rewards.pokeballs }).map((_, i) => (
+                <motion.div
+                  key={`pb-${i}`}
+                  initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                  animate={{ opacity: [0, 1, 1, 0], scale: [0, 1.2, 1, 0.8], x: (Math.random() - 0.5) * 180, y: -120 - Math.random() * 100 }}
+                  transition={{ duration: 1.6, delay: i * 0.15, ease: "easeOut" }}
+                  className="absolute w-16 h-16 rounded-full bg-pink-400/90 border-2 border-white shadow-xl flex items-center justify-center backdrop-blur-sm"
+                >
+                  <img src={`${ITEM_SPRITE_BASE}poke-ball.png`} alt="" className="w-12 h-12 object-contain drop-shadow-md" />
+                </motion.div>
+              ))}
+              {rewards.razzBerries > 0 && Array.from({ length: rewards.razzBerries }).map((_, i) => (
+                <motion.div
+                  key={`rb-${i}`}
+                  initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                  animate={{ opacity: [0, 1, 1, 0], scale: [0, 1.2, 1, 0.8], x: (Math.random() - 0.5) * 180, y: -120 - Math.random() * 100 }}
+                  transition={{ duration: 1.6, delay: (rewards.pokeballs + i) * 0.15, ease: "easeOut" }}
+                  className="absolute w-16 h-16 rounded-full bg-yellow-400/90 border-2 border-white shadow-xl flex items-center justify-center backdrop-blur-sm"
+                >
+                  <img src={`${ITEM_SPRITE_BASE}razz-berry.png`} alt="" className="w-12 h-12 object-contain drop-shadow-md" />
+                </motion.div>
+              ))}
+              <motion.div
+                 initial={{ opacity: 0, scale: 0, y: 0 }}
+                 animate={{ opacity: [0, 1, 1, 0], scale: [0, 1.2, 1, 0.8], y: -220 }}
+                 transition={{ duration: 1.6, delay: (rewards.pokeballs + rewards.razzBerries) * 0.15, ease: "easeOut" }}
+                 className="absolute px-5 py-2 rounded-full bg-white border-2 border-sky-400 shadow-xl font-display font-black text-sky-500 text-xl"
+              >
+                 +{rewards.xp} XP
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </div>
