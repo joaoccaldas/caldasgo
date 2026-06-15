@@ -34,12 +34,16 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.5 } }}
       className="absolute inset-0 z-[1000] flex flex-col justify-end overflow-hidden bg-slate-900"
-      style={{
-        backgroundImage: 'url("https://images.nintendolife.com/d5a9d8c0b2986/pokemon-go-loading.original.jpg")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
     >
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center z-0 opacity-40 scale-110"
+        style={{ 
+          backgroundImage: 'url("https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Loading%20Screens/Season%20of%20Hidden%20Gems.png")',
+          filter: 'blur(4px)'
+        }}
+      />
+
       {/* Fallback gradient if image fails to load quickly */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
 
