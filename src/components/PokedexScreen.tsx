@@ -185,7 +185,8 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
               <div
                 key={species.id}
                 onClick={() => clickable && setSelectedSpeciesId(species.id)}
-                className={`aspect-square bg-white border rounded-lg shadow-sm flex flex-col items-center justify-center relative overflow-hidden ${clickable ? 'cursor-pointer active:scale-95 transition-transform' : ''} ${shiny ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-200'}`}
+                style={clickable ? { background: `linear-gradient(to bottom, ${TYPE_COLORS[species.types[0]]}26 0%, #ffffff 72%)` } : undefined}
+                className={`aspect-square ${clickable ? '' : 'bg-white'} border rounded-lg shadow-sm flex flex-col items-center justify-center relative overflow-hidden ${clickable ? 'cursor-pointer active:scale-95 transition-transform' : ''} ${shiny ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-200'}`}
               >
                 <span className="absolute top-1 left-1.5 text-slate-400 font-bold text-[10px]">
                   #{species.id.toString().padStart(3, '0')}

@@ -153,6 +153,13 @@ const MapScreen: React.FC = () => {
             );
           })}
         </MapContainer>
+
+        {/* A soft green wash unifies the map into Pokémon GO's signature
+            daytime palette regardless of the base tile colors. */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: '#5fbf6b', mixBlendMode: 'multiply', opacity: 0.14 }}
+        />
       </div>
 
       {/* CSS injection for the authentic map filter.
@@ -160,19 +167,29 @@ const MapScreen: React.FC = () => {
           vivid Pokémon GO green while the Pokémon sprites stay crisp and full-color. */}
       <style>{`
         .pogo-map-filter .leaflet-tile-pane {
-          filter: sepia(45%) hue-rotate(62deg) saturate(1.7) brightness(1.03) contrast(1.02);
+          filter: sepia(55%) hue-rotate(52deg) saturate(1.5) brightness(1.04) contrast(1.03);
         }
       `}</style>
 
       {/* The Player Avatar in the center of the screen (Fixed) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 pointer-events-none z-10">
-         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-black/30 rounded-[100%] blur-sm" />
-         <div className="w-full h-full bg-red-500 rounded-full border-[3px] border-white shadow-lg overflow-hidden flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none z-10 flex items-center justify-center">
+         {/* GPS accuracy ring, pulsing like the real game */}
+         <div className="absolute w-20 h-20 rounded-full bg-[#4cc3ff]/20 border-2 border-[#4cc3ff]/40 animate-ping" />
+         <div className="absolute w-20 h-20 rounded-full bg-[#4cc3ff]/10 border border-[#4cc3ff]/30" />
+         {/* Ground shadow */}
+         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-3 bg-black/30 rounded-[100%] blur-sm" />
+         {/* Avatar disc */}
+         <div className="relative w-14 h-14 rounded-full bg-gradient-to-b from-[#48b6e0] to-[#2a86b8] border-[3px] border-white shadow-lg overflow-hidden flex items-end justify-center">
+            <img
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+              alt="You"
+              className="w-[115%] h-[115%] object-cover -mb-1"
+              onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'; }}
+            />
          </div>
          {/* Fake GPS Mock Indicator */}
          {isMock && (
-           <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-800/80 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap border border-white/20 shadow-md">
+           <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-slate-800/80 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap border border-white/20 shadow-md">
              Mock GPS
            </div>
          )}

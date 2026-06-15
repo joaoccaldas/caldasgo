@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSpecies, getTypeIcon, TYPE_COLORS } from '../data/pokemonDatabase';
+import { getMoveset, getAppraisal } from '../data/moves';
 import { calculateHP, powerUpCost, MAX_LEVEL } from '../data/cpTable';
 import PokemonSprite from './PokemonSprite';
 import ScreenHeader from './ScreenHeader';
@@ -118,7 +119,8 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                 <button
                   key={p.uid}
                   onClick={() => setSelectedUid(p.uid)}
-                  className="aspect-square bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col items-center overflow-hidden active:scale-95 transition-transform p-1"
+                  style={{ background: `linear-gradient(to bottom, ${TYPE_COLORS[species.types[0]]}26 0%, #ffffff 72%)` }}
+                  className="aspect-square border border-slate-200 rounded-lg shadow-sm flex flex-col items-center overflow-hidden active:scale-95 transition-transform p-1"
                 >
                   {/* CP on its own top strip so it never collides with the sprite */}
                   <span className="text-[11px] font-black text-slate-600 tracking-wide leading-none pt-1 shrink-0">
@@ -218,9 +220,29 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                 );
               })()}
 
-              <div className="text-slate-500 font-bold text-sm mb-4">
+              <div className="text-slate-500 font-bold text-sm mb-2">
                 Level {selected.level} &middot; IV {ivPercent(selected.ivs)}%
               </div>
+
+              {/* Appraisal stars (real game rates a Pokémon's IVs out of 3 stars) */}
+              {(() => {
+                const appraisal = getAppraisal(ivPercent(selected.ivs));
+                return (
+                  <div className="flex items-center gap-1 mb-4">
+                    {[0, 1, 2].map(i => (
+                      <svg key={i} viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+                        <path
+                          d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.6 5.9 20.4l1.5-6.8L2.2 9l6.9-.7z"
+                          fill={i < appraisal.stars ? '#f6a821' : '#e2e8f0'}
+                          stroke={i < appraisal.stars ? '#e08a10' : '#cbd5e1'}
+                          strokeWidth="0.6"
+                        />
+                      </svg>
+                    ))}
+                    <span className="ml-1 text-slate-500 font-bold text-xs uppercase tracking-wider">{appraisal.label}</span>
+                  </div>
+                );
+              })()}
 
               {/* IV breakdown */}
               <div className="w-full px-8 flex justify-center gap-8 mb-6 text-center">
@@ -260,6 +282,31 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                   <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">HEIGHT</span>
                 </div>
               </div>
+
+              {/* Moves (Fast + Charged), like the real Pokémon detail screen */}
+              {(() => {
+                const { fast, charged } = getMoveset(selectedSpecies.types);
+                return (
+                  <div className="w-full px-8 mb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="flex-1 h-px bg-slate-200" />
+                      <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Moves</span>
+                      <div className="flex-1 h-px bg-slate-200" />
+                    </div>
+                    {[fast, charged].map((move, i) => (
+                      <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: TYPE_COLORS[move.type] }}>
+                            <img src={getTypeIcon(move.type)} alt={move.type} className="w-4 h-4 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                          </div>
+                          <span className="font-bold text-slate-700 text-sm">{move.name}</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{i === 0 ? 'Fast' : 'Charged'}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Stardust + Candy resources */}
               <div className="w-full px-8 flex justify-center gap-10 mb-4 items-start">
