@@ -1,4 +1,4 @@
-name: Deploy static content to Pages
+name: Deploy current main to GitHub Pages
 
 on:
   push:
@@ -11,33 +11,49 @@ permissions:
   id-token: write
 
 concurrency:
-  group: 'pages'
+  group: pages-current-main
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build-and-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout current main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Build
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Build production bundle
         run: npm run build
-      - name: Setup Pages
+
+      - name: Write deployed revision markers
+        run: |
+          printf '{"commit":"%s","workflow":"deploy-current-main","builtAt":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/deployment.json
+          cp public/release.json dist/release.json
+
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v4
-      - name: Upload artifact
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
-      - name: Deploy to GitHub Pages
+          path: ./dist
+
+      - name: Deploy current main
         id: deployment
         uses: actions/deploy-pages@v4
