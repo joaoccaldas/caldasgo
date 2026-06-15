@@ -22,6 +22,8 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
   const [message, setMessage] = useState('');
   const [isCaught, setIsCaught] = useState(false);
   const [berryActive, setBerryActive] = useState(false);
+  
+  const [throwText, setThrowText] = useState<{text: string, color: string} | null>(null);
 
   // Catch Ring State
   const [ringScale, setRingScale] = useState(1);
@@ -56,9 +58,27 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
     setCatching(true);
     setMessage('');
 
+    // Determine Throw Quality based on ringScale at time of click
+    let qualityText = 'Nice!';
+    let qualityColor = '#ffffff';
+    let catchBonus = 0.1;
+
+    if (ringScale < 0.35) {
+      qualityText = 'Excellent!';
+      qualityColor = '#facc15'; // Gold
+      catchBonus = 0.4;
+    } else if (ringScale < 0.65) {
+      qualityText = 'Great!';
+      qualityColor = '#22c55e'; // Green
+      catchBonus = 0.2;
+    }
+
+    setThrowText({ text: qualityText, color: qualityColor });
+    setTimeout(() => setThrowText(null), 2500);
+
     await new Promise(r => setTimeout(r, 1500));
 
-    const catchRate = berryActive ? 0.9 : 0.5;
+    const catchRate = Math.min((berryActive ? 0.8 : 0.4) + catchBonus, 0.95);
     const success = Math.random() < catchRate;
 
     if (success) {
@@ -98,7 +118,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
         {/* Run Button (Top Left) */}
         <button
           onClick={onClose}
-          className="w-10 h-10 bg-slate-800/50 backdrop-blur rounded-full flex items-center justify-center text-white border border-white/30 shadow-sm"
+          className="w-10 h-10 bg-slate-800/50 backdrop-blur rounded-full flex items-center justify-center text-white border border-white/30 shadow-sm active:scale-95 transition-transform"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 14h-3"/><path d="M13 10h-3"/><path d="M10 14v4"/><path d="M10 10V6"/><path d="M14 6h3a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-3"/><path d="M6 10h2"/><path d="M6 14h2"/></svg>
         </button>
@@ -119,7 +139,6 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
           <div className="absolute top-0 flex flex-col items-center">
             <svg width="240" height="120" viewBox="0 0 240 120" className="absolute top-0 opacity-60">
                <path d="M 20 120 A 100 100 0 0 1 220 120" fill="none" stroke="white" strokeWidth="3" />
-               {/* Center Dot */}
                <circle cx="120" cy="20" r="4" fill="white" />
             </svg>
             <div className="bg-slate-800/60 backdrop-blur px-5 py-1 rounded-full border border-slate-500/50 shadow-md mt-6">
@@ -159,18 +178,36 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
               {!catching && (
                  <div className="absolute w-[80%] h-[80%] flex items-center justify-center z-20 pointer-events-none">
                     {/* Outer White Ring */}
-                    <div className="absolute w-full h-full rounded-full border-4 border-white/60" />
+                    <div className="absolute w-full h-full rounded-full border-[3px] border-white/60" />
                     {/* Inner Colored Shrinking Ring */}
                     <div
-                      className="absolute rounded-full border-4 border-green-500/80"
+                      className="absolute rounded-full border-[3px] border-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
                       style={{
                         width: `${ringScale * 100}%`,
                         height: `${ringScale * 100}%`,
-                        borderColor: ringScale < 0.5 ? '#ef4444' : ringScale < 0.8 ? '#eab308' : '#22c55e'
+                        borderColor: ringScale < 0.35 ? '#facc15' : ringScale < 0.65 ? '#22c55e' : '#ffffff',
+                        boxShadow: `0 0 8px ${ringScale < 0.35 ? 'rgba(250,204,21,0.5)' : ringScale < 0.65 ? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.5)'}`
                       }}
                     />
                  </div>
               )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Throw Quality Text pop-up */}
+        <AnimatePresence>
+          {throwText && (
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: -20 }}
+              exit={{ scale: 1.1, opacity: 0 }}
+              className="absolute z-50 pointer-events-none drop-shadow-md"
+              style={{ top: '35%' }}
+            >
+              <span className="font-black text-3xl tracking-widest uppercase font-sans" style={{ color: throwText.color, WebkitTextStroke: '1px rgba(0,0,0,0.8)' }}>
+                {throwText.text}
+              </span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -180,7 +217,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
             initial={{ y: 200, scale: 0 }}
             animate={{ y: isCaught ? 0 : [0, -50, 0], scale: 1, rotate: isCaught ? [0, 10, -10, 0] : 0 }}
             transition={{ duration: 0.5 }}
-            className={`w-20 h-20 rounded-full bg-[#ef4444] border-[4px] border-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.8)] absolute flex items-center justify-center overflow-hidden ${isCaught ? 'bg-red-600' : ''}`}
+            className={`w-20 h-20 rounded-full bg-[#ef4444] border-[4px] border-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.8)] absolute flex items-center justify-center overflow-hidden z-30 ${isCaught ? 'bg-red-600' : ''}`}
           >
             <div className="w-full h-1/2 bg-white absolute bottom-0 border-t-[4px] border-slate-800" />
             <div className="w-7 h-7 bg-white rounded-full absolute border-[4px] border-slate-800 flex items-center justify-center">
@@ -194,7 +231,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
       {/* Message Box */}
       {message && (
         <div className="absolute bottom-[140px] w-full px-12 z-20 pointer-events-none">
-          <div className="bg-[#1e293b]/90 rounded-full py-2 px-4 shadow-xl border border-slate-600/50 text-center">
+          <div className="bg-slate-800/90 backdrop-blur rounded-full py-2 px-4 shadow-xl border border-slate-600/50 text-center">
             <p className="text-sm font-bold text-white tracking-wide">{message}</p>
           </div>
         </div>
@@ -204,20 +241,20 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
       <div className="absolute bottom-0 w-full h-[140px] z-10 pointer-events-none">
         {!isCaught && (
           <>
-            {/* Berry Button (Bottom Left) */}
+            {/* Berry Selector (Bottom Left) */}
             <div className="absolute left-6 bottom-8 pointer-events-auto flex flex-col items-center">
               <button
                 onClick={handleUseBerry}
                 disabled={catching || berryActive || inventory.razzBerries === 0}
-                className={`w-14 h-14 rounded-full flex flex-col items-center justify-center transition-all ${
+                className={`w-[52px] h-[52px] rounded-full flex flex-col items-center justify-center transition-all ${
                   catching || berryActive || inventory.razzBerries === 0
                     ? 'bg-slate-600/50 grayscale opacity-50'
-                    : 'bg-white/90 shadow-[0_4px_15px_rgba(0,0,0,0.3)] border-2 border-slate-200 hover:scale-105 active:scale-95 backdrop-blur'
+                    : 'bg-white/95 shadow-[0_4px_15px_rgba(0,0,0,0.3)] border-[3px] border-slate-200 hover:scale-105 active:scale-95 backdrop-blur'
                 }`}
               >
                 <div className="relative">
-                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ec4899" stroke="#be185d" strokeWidth="1" className="w-8 h-8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                   <div className="absolute -top-1 -right-2 bg-slate-800 text-white text-[10px] font-bold px-1.5 rounded-full border border-slate-500">{inventory.razzBerries}</div>
+                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ec4899" stroke="#be185d" strokeWidth="1" className="w-7 h-7"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                   <div className="absolute -top-1 -right-2 bg-slate-800 text-white text-[9px] font-bold px-1.5 rounded-full border border-slate-500">{inventory.razzBerries}</div>
                 </div>
               </button>
             </div>
@@ -246,10 +283,14 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
               </div>
             </div>
 
-            {/* Camera Button (Bottom Right) */}
-            <div className="absolute right-6 bottom-8 pointer-events-auto">
-              <div className="w-14 h-14 rounded-full bg-white/90 backdrop-blur shadow-[0_4px_15px_rgba(0,0,0,0.3)] border-2 border-slate-200 flex items-center justify-center text-slate-700 opacity-90 cursor-pointer hover:bg-white">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            {/* Ball Selector (Bottom Right) */}
+            <div className="absolute right-6 bottom-8 pointer-events-auto flex flex-col items-center">
+              <div className="w-[52px] h-[52px] rounded-full bg-white/95 backdrop-blur shadow-[0_4px_15px_rgba(0,0,0,0.3)] border-[3px] border-slate-200 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-transform overflow-hidden relative">
+                <div className="w-[85%] h-[85%] rounded-full bg-[#ef4444] border-2 border-slate-800 relative overflow-hidden">
+                  <div className="w-full h-1/2 bg-white absolute bottom-0 border-t-2 border-slate-800" />
+                  <div className="w-3 h-3 bg-white rounded-full absolute border-2 border-slate-800 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                <div className="absolute -top-1 -right-1 bg-slate-800 text-white text-[9px] font-bold px-1.5 rounded-full border border-slate-500 z-10">{inventory.pokeballs}</div>
               </div>
             </div>
           </>
@@ -260,3 +301,4 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
 };
 
 export default EncounterScreen;
+
