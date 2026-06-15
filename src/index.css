@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Lato', sans-serif;
-  --font-condensed: 'Roboto Condensed', sans-serif;
+  /* Rounded, chunky geometric sans — matches GO's friendly brand voice for
+     headings, labels and body text. */
+  --font-sans: 'Nunito', sans-serif;
+  /* Extra-heavy display face reserved for big numerals: CP, trainer level,
+     stat counts. */
+  --font-display: 'Baloo 2', 'Nunito', sans-serif;
+  /* Neutral face for dense body copy / move lists where Nunito reads too round. */
+  --font-condensed: 'Inter', sans-serif;
 
   /* Authentic Pokémon GO palette — unified teal/navy identity. */
   --color-pogo-navy: #0b2a3a;
@@ -10,6 +16,31 @@
   --color-pogo-teal-dark: #12515e;
   --color-pogo-cyan: #2dd4bf;
   --color-pogo-gold: #f6c243;
+
+  /* Map base — GO's saturated teal-to-blue overworld gradient. */
+  --color-pogo-map-start: #bdf0e6;
+  --color-pogo-map-end: #7fd0e8;
+
+  /* Vivid interactive accents (PokéStops, Gyms, buttons). */
+  --color-pogo-blue: #3b82f6;
+  --color-pogo-purple: #8b5cf6;
+  --color-pogo-red: #ff5b6e;
+
+  /* Glassmorphism surface for cards/sheets/HUD chips. */
+  --color-pogo-glass: rgba(255, 255, 255, 0.92);
+  --color-pogo-glass-border: rgba(255, 255, 255, 0.6);
+
+  /* Corner-radius scale — GO favors big pill / rounded-rect shapes. */
+  --radius-pogo-sm: 0.75rem;
+  --radius-pogo-md: 1.25rem;
+  --radius-pogo-lg: 1.75rem;
+  --radius-pogo-xl: 2.5rem;
+  --radius-pogo-pill: 999px;
+
+  /* Elevation scale — soft, saturated shadows instead of flat borders. */
+  --shadow-pogo-low: 0 2px 8px rgba(11, 42, 58, 0.18);
+  --shadow-pogo-mid: 0 4px 14px rgba(11, 42, 58, 0.28);
+  --shadow-pogo-high: 0 8px 24px rgba(11, 42, 58, 0.35);
 }
 
 @layer utilities {
@@ -31,4 +62,18 @@ html, body, #root {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Radar sweep used by the Nearby chip in BottomNav. */
+@keyframes slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

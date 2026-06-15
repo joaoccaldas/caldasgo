@@ -4,7 +4,7 @@ import L, { type LeafletMouseEvent } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import HUD from '../components/HUD';
-import MainMenu from '../components/MainMenu';
+import BottomNav from '../components/BottomNav';
 import EncounterScreen from '../components/EncounterScreen';
 import PokedexScreen from '../components/PokedexScreen';
 import PokemonStorageScreen from '../components/PokemonStorageScreen';
@@ -50,7 +50,7 @@ const MapScreen: React.FC = () => {
   const { pokestops, spinPokestop, isSpinable } = usePokestops(location);
   const trainer = useTrainer();
   const collection = useCollection();
-  const [activeOverlay, setActiveOverlay] = useState<'none' | 'menu' | 'pokedex' | 'storage' | 'inventory'>('none');
+  const [activeOverlay, setActiveOverlay] = useState<'none' | 'pokedex' | 'storage' | 'inventory'>('none');
   const [encounter, setEncounter] = useState<SpawnedPokemon | null>(null);
   const [activeStop, setActiveStop] = useState<Pokestop | null>(null);
 
@@ -193,21 +193,19 @@ const MapScreen: React.FC = () => {
       </div>
 
       {/* Primary HUD Layer */}
-      <HUD onOpenMenu={() => setActiveOverlay('menu')} playerLevel={trainer.level} xpProgress={trainer.progress} />
+      <HUD playerLevel={trainer.level} xpProgress={trainer.progress} stardust={collection.stardust} />
+
+      {/* Persistent bottom navigation */}
+      <BottomNav
+        onOpenPokedex={() => setActiveOverlay('pokedex')}
+        onOpenStorage={() => setActiveOverlay('storage')}
+        onOpenInventory={() => setActiveOverlay('inventory')}
+      />
 
       {/* Overlays */}
-      {activeOverlay === 'menu' && (
-        <MainMenu
-          onClose={() => setActiveOverlay('none')}
-          onOpenPokedex={() => setActiveOverlay('pokedex')}
-          onOpenStorage={() => setActiveOverlay('storage')}
-          onOpenInventory={() => setActiveOverlay('inventory')}
-        />
-      )}
-
       {activeOverlay === 'pokedex' && (
         <PokedexScreen
-          onClose={() => setActiveOverlay('menu')}
+          onClose={() => setActiveOverlay('none')}
           owned={collection.owned}
           candies={collection.candies}
           seen={collection.seen}
@@ -217,7 +215,7 @@ const MapScreen: React.FC = () => {
 
       {activeOverlay === 'storage' && (
         <PokemonStorageScreen
-          onClose={() => setActiveOverlay('menu')}
+          onClose={() => setActiveOverlay('none')}
           owned={collection.owned}
           candies={collection.candies}
           stardust={collection.stardust}
@@ -228,7 +226,7 @@ const MapScreen: React.FC = () => {
       )}
 
       {activeOverlay === 'inventory' && (
-        <InventoryScreen onClose={() => setActiveOverlay('menu')} />
+        <InventoryScreen onClose={() => setActiveOverlay('none')} />
       )}
 
       {/* Encounter Screen */}
