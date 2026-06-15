@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getSpecies, TYPE_COLORS } from '../data/pokemonDatabase';
+import { getSpecies, getTypeIcon, TYPE_COLORS } from '../data/pokemonDatabase';
 import PokemonSprite from './PokemonSprite';
 import type { CandyBag, OwnedPokemon } from '../types';
 
@@ -225,9 +225,10 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                   <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">WEIGHT</span>
                 </div>
                 <div className="flex flex-col items-center flex-1 gap-1">
-                  <div className="flex gap-1 justify-center flex-wrap">
+                  <div className="flex gap-1.5 justify-center flex-wrap">
                     {selectedSpecies.types.map(t => (
-                      <div key={t} className="px-2 py-0.5 rounded-full text-white text-[10px] font-bold uppercase shadow-sm" style={{ backgroundColor: TYPE_COLORS[t] }}>
+                      <div key={t} className="flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full text-white text-[10px] font-bold uppercase shadow-sm" style={{ backgroundColor: TYPE_COLORS[t] }}>
+                        <img src={getTypeIcon(t)} alt={t} className="w-4 h-4 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                         {t}
                       </div>
                     ))}

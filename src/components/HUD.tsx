@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import PokemonSprite from './PokemonSprite';
 
 interface HUDProps {
   onOpenMenu: () => void;
@@ -71,12 +72,7 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
         <div className="flex gap-3 pointer-events-auto">
           <div className="relative">
             <div className="w-16 h-16 rounded-full border-2 border-white shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-[#a3e635] flex items-center justify-center overflow-hidden">
-               <img
-                 src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"
-                 alt="Buddy"
-                 className="w-[120%] h-[120%] object-contain"
-                 onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'; }}
-               />
+               <PokemonSprite id={1} name="Buddy" className="w-[110%] h-[110%] object-contain" />
             </div>
             {/* Buddy Mood */}
             <div className="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow border border-slate-200">
@@ -108,9 +104,9 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
         {/* Bottom Right: Nearby Radar */}
         <div className="pointer-events-auto mb-1">
           <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg border border-slate-200 pl-3 pr-2 py-1.5 flex items-center gap-1 cursor-pointer hover:bg-white transition-colors relative overflow-hidden">
-             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="nearby" onError={(e) => { e.currentTarget.style.display = 'none'; }} /></div>
-             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="nearby" onError={(e) => { e.currentTarget.style.display = 'none'; }} /></div>
-             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="nearby" onError={(e) => { e.currentTarget.style.display = 'none'; }} /></div>
+             <div className="w-7 h-7 opacity-80"><PokemonSprite id={1} name="nearby" className="w-full h-full object-contain" /></div>
+             <div className="w-7 h-7 opacity-80"><PokemonSprite id={4} name="nearby" className="w-full h-full object-contain" /></div>
+             <div className="w-7 h-7 opacity-80"><PokemonSprite id={7} name="nearby" className="w-full h-full object-contain" /></div>
              
              {/* Tiny green radar sweep effect overlay */}
              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#a3e635]/20 to-transparent w-[200%] animate-[slide_3s_infinite]" />

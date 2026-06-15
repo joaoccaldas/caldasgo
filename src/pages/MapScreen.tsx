@@ -13,7 +13,7 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import { useSpawning } from '../hooks/useSpawning';
 import { useTrainer } from '../hooks/useTrainer';
 import { useCollection } from '../hooks/useCollection';
-import { getPokemonImage } from '../data/pokemonDatabase';
+import { getPogoSprite, getPokemonImage } from '../data/pokemonDatabase';
 import type { SpawnedPokemon } from '../types/index';
 
 // Leaflet marker fix - the default icon URLs point at bundler-relative assets
@@ -91,12 +91,15 @@ const MapScreen: React.FC = () => {
 
           {/* Render Spawns */}
           {spawnedPokemon.map((spawn: SpawnedPokemon) => {
-            const fallbackImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spawn.speciesId}.png`;
+            // Real PoGo sprite first, falling back to official artwork, then basic sprite.
+            const pogo = getPogoSprite(spawn.speciesId);
+            const artwork = getPokemonImage(spawn.speciesId);
+            const basic = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spawn.speciesId}.png`;
             const icon = L.divIcon({
               html: `
                 <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4">
                   <div class="absolute inset-0 rounded-full bg-white/40 animate-ping opacity-70 border-[2px] border-white"></div>
-                  <img src="${getPokemonImage(spawn.speciesId)}" alt="${spawn.species.name}" class="w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" onerror="this.onerror=null;this.src='${fallbackImg}'" />
+                  <img src="${pogo}" alt="${spawn.species.name}" class="w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" onerror="this.onerror=function(){this.onerror=null;this.src='${basic}'};this.src='${artwork}'" />
                 </div>
               `,
               className: 'custom-pokemon-icon',
@@ -115,15 +118,12 @@ const MapScreen: React.FC = () => {
         </MapContainer>
       </div>
 
-      {/* CSS injection for the authentic map filter */}
+      {/* CSS injection for the authentic map filter.
+          We filter ONLY the tile layer (not markers) so the land takes on the
+          vivid Pokémon GO green while the Pokémon sprites stay crisp and full-color. */}
       <style>{`
-        .pogo-map-filter {
-          /* This specific filter combination turns light roads blue and land vibrant green */
-          filter: sepia(100%) hue-rotate(85deg) saturate(300%) brightness(1.1) contrast(1.1);
-        }
-        .custom-pokemon-icon {
-          /* Reverse the filter so Pokemon don't turn green */
-          filter: sepia(100%) hue-rotate(-85deg) saturate(0.33) brightness(0.9) contrast(0.9);
+        .pogo-map-filter .leaflet-tile-pane {
+          filter: sepia(45%) hue-rotate(62deg) saturate(1.7) brightness(1.03) contrast(1.02);
         }
       `}</style>
 
