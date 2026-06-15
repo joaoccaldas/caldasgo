@@ -1,12 +1,6 @@
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  POKEMON_DATABASE,
-  getSpecies,
-  getTypeIcon,
-  isShowcaseRarity,
-  TYPE_COLORS,
-} from '../data/pokemonDatabase';
+import { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { getSpecies, getTypeIcon, POKEMON_DATABASE, TYPE_COLORS } from '../data/pokemonDatabase';
 import { maxCP } from '../data/cpTable';
 import PokemonSprite from './PokemonSprite';
 import type { CandyBag, OwnedPokemon } from '../types';
@@ -19,375 +13,135 @@ interface PokedexScreenProps {
   onEvolve: (uid: string, toSpeciesId: number, candyCost: number) => Promise<boolean>;
 }
 
-type RarityFilter = 'all' | 'caught' | 'legendary' | 'mythical';
+type DexFilter = 'all' | 'caught' | 'seen' | 'missing';
 
-const FILTERS: { key: RarityFilter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'caught', label: 'Caught' },
-  { key: 'legendary', label: 'Legendary' },
-  { key: 'mythical', label: 'Mythical' },
+const REGIONS = [
+  { generation: 0, label: 'All' },
+  { generation: 1, label: 'Kanto' },
+  { generation: 2, label: 'Johto' },
+  { generation: 3, label: 'Hoenn' },
+  { generation: 4, label: 'Sinnoh' },
+  { generation: 5, label: 'Unova' },
+  { generation: 6, label: 'Kalos' },
+  { generation: 7, label: 'Alola' },
+  { generation: 8, label: 'Galar' },
+  { generation: 9, label: 'Paldea' },
 ];
 
-const ivPercent = (ivs: OwnedPokemon['ivs']) =>
-  Math.round(((ivs.attack + ivs.defense + ivs.stamina) / 45) * 100);
+const FILTERS: { key: DexFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'caught', label: 'Caught' },
+  { key: 'seen', label: 'Seen' },
+  { key: 'missing', label: 'Missing' },
+];
 
 const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, seen, onEvolve }) => {
-  const [selectedSpeciesId, setSelectedSpeciesId] = useState<number | null>(null);
+  const [generation, setGeneration] = useState(0);
+  const [filter, setFilter] = useState<DexFilter>('all');
+  const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
   const seenSet = useMemo(() => new Set(seen), [seen]);
-
-  // Search & filter state
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [rarityFilter, setRarityFilter] = useState<RarityFilter>('all');
-
   const ownedBySpecies = useMemo(() => {
     const map = new Map<number, OwnedPokemon[]>();
-    for (const p of owned) {
-      const list = map.get(p.speciesId) || [];
-      list.push(p);
-      map.set(p.speciesId, list);
-    }
-    for (const list of map.values()) {
-      list.sort((a, b) => b.cp - a.cp);
-    }
+    owned.forEach((pokemon) => {
+      const current = map.get(pokemon.speciesId) || [];
+      current.push(pokemon);
+      current.sort((a, b) => b.cp - a.cp);
+      map.set(pokemon.speciesId, current);
+    });
     return map;
   }, [owned]);
 
-  const caughtSpeciesCount = ownedBySpecies.size;
+  const entries = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    return POKEMON_DATABASE.filter((species) => {
+      const caught = ownedBySpecies.has(species.id);
+      const wasSeen = seenSet.has(species.id) || caught;
+      if (generation && species.generation !== generation) return false;
+      if (filter === 'caught' && !caught) return false;
+      if (filter === 'seen' && !wasSeen) return false;
+      if (filter === 'missing' && wasSeen) return false;
+      if (normalized && !species.name.toLowerCase().includes(normalized) && !species.id.toString().includes(normalized)) return false;
+      return true;
+    });
+  }, [generation, filter, query, ownedBySpecies, seenSet]);
 
-  const filteredGrid = useMemo(() => {
-    let entries = POKEMON_DATABASE;
-
-    if (rarityFilter === 'caught') {
-      entries = entries.filter(species => ownedBySpecies.has(species.id));
-    } else if (rarityFilter === 'legendary' || rarityFilter === 'mythical') {
-      entries = entries.filter(species => species.rarity === rarityFilter);
-    }
-
-    if (searchQuery.trim() !== '') {
-      const query = searchQuery.toLowerCase();
-      entries = entries.filter(species => {
-        if (!isNaN(Number(query))) {
-          return species.id.toString().includes(query);
-        }
-        return species.name.toLowerCase().includes(query);
-      });
-    }
-
-    return entries;
-  }, [searchQuery, rarityFilter, ownedBySpecies]);
-
-  const selectedSpecies = selectedSpeciesId !== null ? getSpecies(selectedSpeciesId) : undefined;
-  const selectedOwned = selectedSpeciesId !== null ? ownedBySpecies.get(selectedSpeciesId) : undefined;
+  const selectedSpecies = selectedId ? getSpecies(selectedId) : undefined;
+  const selectedOwned = selectedId ? ownedBySpecies.get(selectedId) : undefined;
   const bestOwned = selectedOwned?.[0];
-  const selectedShiny = selectedSpecies ? isShowcaseRarity(selectedSpecies.rarity) : false;
-
-  const handleEvolve = async (toSpeciesId: number, candyCost: number) => {
-    if (!bestOwned) return;
-    const success = await onEvolve(bestOwned.uid, toSpeciesId, candyCost);
-    if (success) {
-      setSelectedSpeciesId(toSpeciesId);
-    }
-  };
+  const selectedSeen = selectedId ? seenSet.has(selectedId) || !!bestOwned : false;
+  const caughtCount = ownedBySpecies.size;
+  const seenCount = new Set([...seen, ...owned.map((pokemon) => pokemon.speciesId)]).size;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
-      className="absolute inset-0 z-[700] bg-[#bfe6f2] flex flex-col font-sans overflow-hidden"
-    >
-      {/* Search Bar Overlay */}
-      <AnimatePresence>
-        {isSearching && (
-          <motion.div
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            exit={{ y: -100 }}
-            className="absolute top-0 left-0 right-0 z-30 bg-[#0b2a3a] p-4 shadow-lg flex items-center gap-2"
-          >
-            <div className="flex-1 bg-white rounded-full flex items-center px-4 h-10">
-               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-               <input
-                 autoFocus
-                 type="text"
-                 placeholder="Search by name or number..."
-                 value={searchQuery}
-                 onChange={(e) => setSearchQuery(e.target.value)}
-                 className="flex-1 bg-transparent outline-none ml-2 text-slate-800 placeholder-slate-400 font-medium"
-               />
-               {searchQuery && (
-                 <button onClick={() => setSearchQuery('')} className="text-slate-400 p-1">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                 </button>
-               )}
-            </div>
-            <button onClick={() => { setIsSearching(false); setSearchQuery(''); }} className="text-white font-bold ml-2">
-              Cancel
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Top bar: region label, caught/total pill, Pokédex icon */}
-      <div className="shrink-0 px-4 pt-12 pb-2 flex items-center justify-between relative z-10">
-        <span className="text-[#1f6f6b] font-black tracking-wide text-lg">NATIONAL</span>
-        <div className="bg-[#2a9ab5] px-5 py-1.5 rounded-full shadow-md">
-          <span className="text-white font-black text-lg tracking-wide">{caughtSpeciesCount} / {POKEMON_DATABASE.length}</span>
+    <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} className="absolute inset-0 z-[700] flex flex-col overflow-hidden bg-[linear-gradient(180deg,#dff2f6_0%,#cceaf0_48%,#b9dfe8_100%)] text-[#315d61]">
+      <header className="shrink-0 border-b border-white/70 bg-white/58 px-4 pb-3 pt-[max(18px,env(safe-area-inset-top))] shadow-sm backdrop-blur-md">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#68959b]">National</p>
+            <h1 className="text-2xl font-black tracking-[-0.04em] text-[#2e676e]">Pokédex</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setSearchOpen(!searchOpen)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/78 text-[#39777c] shadow-sm ring-1 ring-white active:scale-95" aria-label="Search Pokédex"><svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg></button>
+            <div className="rounded-full bg-[#2c9bb1] px-4 py-2 text-sm font-black text-white shadow-sm">{caughtCount} / {POKEMON_DATABASE.length}</div>
+          </div>
         </div>
-        <svg viewBox="0 0 24 24" className="w-9 h-9" fill="none" stroke="#1f6f6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="5" y="3" width="14" height="18" rx="2" /><circle cx="9" cy="8" r="2.2" /><path d="M14 7h3M14 10h3M8 14h8M8 17h8" />
-        </svg>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="rounded-2xl bg-white/72 px-3 py-2 ring-1 ring-white"><p className="text-[9px] font-black uppercase tracking-wider text-[#7b9da0]">Caught</p><p className="text-lg font-black text-[#2e676e]">{caughtCount}</p></div>
+          <div className="rounded-2xl bg-white/72 px-3 py-2 ring-1 ring-white"><p className="text-[9px] font-black uppercase tracking-wider text-[#7b9da0]">Seen</p><p className="text-lg font-black text-[#2e676e]">{seenCount}</p></div>
+        </div>
+        <AnimatePresence initial={false}>
+          {searchOpen && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden"><div className="mt-3 flex h-11 items-center gap-2 rounded-full bg-white/82 px-4 ring-1 ring-white"><svg viewBox="0 0 24 24" className="h-5 w-5 text-[#72969a]" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg><input value={query} onChange={(event) => setQuery(event.target.value)} autoFocus placeholder="Search name or number" className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[#315d61] outline-none placeholder:text-[#91aaac]" />{query && <button type="button" onClick={() => setQuery('')} className="text-[#78999c]"><svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg></button>}</div></motion.div>}
+        </AnimatePresence>
+      </header>
+
+      <div className="shrink-0 border-b border-white/65 bg-white/45 px-3 py-2 backdrop-blur-sm">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">{REGIONS.map((region) => <button key={region.generation} type="button" onClick={() => setGeneration(region.generation)} className={`rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.08em] ${generation === region.generation ? 'bg-[#2c9bb1] text-white shadow-sm' : 'bg-white/70 text-[#5f8589]'}`}>{region.label}</button>)}</div>
+        <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar">{FILTERS.map((item) => <button key={item.key} type="button" onClick={() => setFilter(item.key)} className={`rounded-full px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.08em] ${filter === item.key ? 'bg-[#59b994] text-white shadow-sm' : 'bg-white/60 text-[#69898d]'}`}>{item.label}</button>)}</div>
       </div>
 
-      {/* 4-column grid */}
-      <div className="flex-1 overflow-y-auto px-3 pt-1 pb-44">
+      <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-28 pt-3">
         <div className="grid grid-cols-4 gap-2">
-          {filteredGrid.map((species) => {
+          {entries.map((species) => {
             const caught = ownedBySpecies.get(species.id);
-            const shiny = isShowcaseRarity(species.rarity);
-            const seenOnly = !caught && !shiny && seenSet.has(species.id);
-            const clickable = !!caught || shiny;
-
+            const wasSeen = seenSet.has(species.id) || !!caught;
             return (
-              <button
-                key={species.id}
-                onClick={() => clickable && setSelectedSpeciesId(species.id)}
-                className={`aspect-[4/5] rounded-2xl flex flex-col items-center justify-center relative overflow-hidden ${clickable ? 'active:scale-95 transition-transform' : ''} ${shiny ? 'bg-amber-50 ring-1 ring-amber-300' : 'bg-[#d6eef8]'}`}
-              >
-                {shiny && <span className="absolute top-1 right-1.5 text-xs" title="Shiny">✨</span>}
-                {caught && caught.length > 1 && (
-                  <span className="absolute top-1 left-1.5 bg-[#2a7a8c] text-white font-bold text-[9px] px-1.5 rounded-full">x{caught.length}</span>
-                )}
-
-                <div className="flex-1 w-full flex items-center justify-center p-2">
-                  {clickable ? (
-                    <PokemonSprite id={species.id} name={species.name} shiny={shiny} className="max-h-full max-w-full object-contain drop-shadow" />
-                  ) : seenOnly ? (
-                    <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(0.45)]" />
-                  ) : (
-                    <span className="text-[#a3cdda] font-black text-xl">?</span>
-                  )}
+              <motion.button key={species.id} type="button" whileTap={{ scale: 0.95 }} onClick={() => wasSeen && setSelectedId(species.id)} disabled={!wasSeen} className={`relative flex aspect-[.82] flex-col items-center overflow-hidden rounded-[17px] border border-white/80 p-1.5 shadow-sm ring-1 ${caught ? 'bg-white/86 ring-[#d7ece7]' : wasSeen ? 'bg-[#d7e9ec]/85 ring-white/60' : 'bg-[#c8e0e5]/60 ring-white/40'}`}>
+                {caught && caught.length > 1 && <span className="absolute left-1 top-1 z-10 rounded-full bg-[#2d8795] px-1.5 py-0.5 text-[8px] font-black text-white">×{caught.length}</span>}
+                <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+                  {caught ? <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain drop-shadow" /> : wasSeen ? <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(.38)]" /> : <span className="text-2xl font-black text-[#95bbc0]">?</span>}
                 </div>
-                <span className="text-[#2a7a8c] font-black text-xs tracking-wider pb-1.5">
-                  {species.id.toString().padStart(4, '0')}
-                </span>
-              </button>
+                <p className="text-[9px] font-black tracking-wider text-[#5b858a]">{species.id.toString().padStart(4, '0')}</p>
+                <p className={`w-full truncate text-center text-[9px] font-black ${wasSeen ? 'text-[#315d61]' : 'text-[#8caeb2]'}`}>{wasSeen ? species.name : 'Unknown'}</p>
+              </motion.button>
             );
           })}
-          {filteredGrid.length === 0 && (
-            <div className="col-span-4 py-10 text-center text-[#3a7a8c] font-medium">
-              No Pokémon found matching "{searchQuery}"
-            </div>
-          )}
         </div>
+        {entries.length === 0 && <div className="py-16 text-center"><p className="text-lg font-black text-[#4d7c82]">No entries found</p><p className="mt-2 text-sm text-[#72949a]">Change the region, filter, or search.</p></div>}
       </div>
 
-      {/* Bottom filter pills (POKÉMON / SHINY style category bar) */}
-      <div className="absolute bottom-[88px] left-0 right-0 px-3 flex gap-2 overflow-x-auto justify-center z-20 no-scrollbar">
-        {FILTERS.map(filter => (
-          <button
-            key={filter.key}
-            onClick={() => setRarityFilter(filter.key)}
-            className={`px-4 py-1.5 rounded-full text-xs font-black tracking-wide uppercase whitespace-nowrap shadow-sm transition-colors ${
-              rarityFilter === filter.key ? 'bg-[#2a9ab5] text-white' : 'bg-white/85 text-[#3a7a8c]'
-            }`}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-[#b9dfe8] via-[#b9dfe8]/95 to-transparent pb-[max(18px,env(safe-area-inset-bottom))] pt-10"><motion.button type="button" whileTap={{ scale: 0.9 }} onClick={onClose} className="pointer-events-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-white/95 text-[#39747a] shadow-[0_8px_22px_rgba(43,91,98,.2)] ring-1 ring-[#c4e1e5]" aria-label="Close Pokédex"><svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M18 6 6 18M6 6l12 12" /></svg></motion.button></div>
 
-      {/* Bottom controls: Search / Close / Regions */}
-      <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-12 z-20">
-        <button
-          onClick={() => setIsSearching(true)}
-          className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a7a8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        </button>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={onClose}
-          className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a7a8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </motion.button>
-        <button className="w-12 h-12 rounded-full bg-white shadow-md flex flex-col items-center justify-center">
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#2a7a8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
-        </button>
-      </div>
-
-      {/* Authentic Flat Detail View */}
       <AnimatePresence>
-        {selectedSpecies && (bestOwned || selectedShiny) && (
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'tween', duration: 0.2 }}
-            className="absolute inset-0 bg-white z-50 flex flex-col font-sans overflow-y-auto"
-          >
-             {/* Gradient Background matching Pokemon type */}
-             <div
-                className="absolute inset-0 opacity-20 z-0"
-                style={{ background: `linear-gradient(to bottom, ${TYPE_COLORS[selectedSpecies.types[0]]} 0%, white 50%)` }}
-             />
-
-             {/* Top Nav */}
-             <div className="w-full flex justify-between items-center p-4 z-10 pt-12">
-               <button onClick={() => setSelectedSpeciesId(null)} className="w-10 h-10 flex items-center justify-center text-slate-500 active:bg-slate-100 rounded-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-               </button>
-               <span className="text-slate-400 font-black text-sm tracking-widest">#{selectedSpecies.id.toString().padStart(3, '0')}</span>
-             </div>
-
-             {/* CP Badge */}
-             <div className="w-full flex justify-center mt-2 z-10 relative">
-               <div className="bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200 z-10 flex items-baseline gap-1">
-                 <span className="text-xs font-bold text-slate-500">{bestOwned ? 'CP' : 'MAX CP'}</span>
-                 <span className="text-2xl font-black text-slate-800 tracking-tighter">
-                   {bestOwned ? bestOwned.cp : maxCP(selectedSpecies.baseStats)}
-                 </span>
-               </div>
-             </div>
-
-             {/* Render */}
-             <motion.div
-               animate={{ y: [-5, 5] }}
-               transition={{ repeat: Infinity, duration: 4, repeatType: "mirror", ease: "easeInOut" }}
-               className="w-full h-[30vh] flex flex-col items-center justify-center relative z-10"
-             >
-               <PokemonSprite
-                 id={selectedSpecies.id}
-                 name={selectedSpecies.name}
-                 shiny={selectedShiny}
-                 variant="artwork"
-                 className="w-[70%] h-full object-contain drop-shadow-2xl"
-               />
-             </motion.div>
-
-             {/* Base Info */}
-             <div className="w-full flex flex-col items-center z-10 mt-2 flex-1 bg-white pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-[2.5rem] pb-8">
-               {selectedShiny && (
-                 <div className="flex items-center gap-1 bg-amber-100 text-amber-700 font-black text-xs px-3 py-1 rounded-full mb-2 uppercase tracking-wider">
-                   ✨ Shiny {selectedSpecies.rarity}
-                 </div>
-               )}
-
-               <h2 className="text-3xl font-black text-slate-800 tracking-wide uppercase mb-1">
-                 {selectedSpecies.name}
-               </h2>
-
-               {bestOwned ? (
-                 <div className="text-slate-500 font-bold text-sm mb-4">
-                   Level {bestOwned.level} &middot; IV {ivPercent(bestOwned.ivs)}%
-                   {selectedOwned && selectedOwned.length > 1 && (
-                     <span> &middot; Best of {selectedOwned.length} caught</span>
-                   )}
-                 </div>
-               ) : (
-                 <div className="text-slate-400 font-bold text-sm mb-4 text-center px-8">
-                   Not caught yet — keep exploring to find one in the wild!
-                 </div>
-               )}
-
-               {/* IV breakdown */}
-               {bestOwned && (
-                 <div className="w-full px-8 flex justify-center gap-8 mb-6 text-center">
-                   <div className="flex flex-col items-center">
-                     <span className="text-lg font-black text-slate-800">{bestOwned.ivs.attack}/15</span>
-                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">ATTACK</span>
-                   </div>
-                   <div className="flex flex-col items-center">
-                     <span className="text-lg font-black text-slate-800">{bestOwned.ivs.defense}/15</span>
-                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">DEFENSE</span>
-                   </div>
-                   <div className="flex flex-col items-center">
-                     <span className="text-lg font-black text-slate-800">{bestOwned.ivs.stamina}/15</span>
-                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">STAMINA</span>
-                   </div>
-                 </div>
-               )}
-
-               {/* Weight / Types / Height */}
-               <div className="w-full px-8 flex justify-between items-center mb-6">
-                 <div className="flex flex-col items-center flex-1 border-r border-slate-200">
-                   <span className="text-lg font-black text-slate-800">{selectedSpecies.weightKg} <span className="text-xs">kg</span></span>
-                   <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">WEIGHT</span>
-                 </div>
-
-                 <div className="flex flex-col items-center flex-1 gap-1">
-                   <div className="flex gap-1.5 justify-center flex-wrap">
-                     {selectedSpecies.types.map(t => (
-                       <div
-                         key={t}
-                         className="flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full text-white text-[10px] font-bold uppercase shadow-sm"
-                         style={{ backgroundColor: TYPE_COLORS[t] }}
-                       >
-                         <img
-                           src={getTypeIcon(t)}
-                           alt={t}
-                           className="w-4 h-4 object-contain"
-                           onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                         />
-                         {t}
-                       </div>
-                     ))}
-                   </div>
-                   <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">TYPE</span>
-                 </div>
-
-                 <div className="flex flex-col items-center flex-1 border-l border-slate-200">
-                   <span className="text-lg font-black text-slate-800">{selectedSpecies.heightM} <span className="text-xs">m</span></span>
-                   <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">HEIGHT</span>
-                 </div>
-               </div>
-
-               {/* Candy & Evolve - only relevant once you've actually caught one */}
-               {bestOwned && (
-                 <>
-                   <div className="w-full px-8 flex justify-center gap-3 mb-6 items-center">
-                     <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-8 h-8 drop-shadow-sm" />
-                     <span className="font-black text-slate-800 text-xl">{candies[selectedSpecies.family] || 0}</span>
-                     <span className="text-slate-400 font-bold text-xs tracking-wider uppercase">{selectedSpecies.family} CANDY</span>
-                   </div>
-
-                   {selectedSpecies.evolutions.length > 0 && (
-                     <div className="w-full px-8 flex flex-col gap-3">
-                       {selectedSpecies.evolutions.map(evo => {
-                         const targetSpecies = getSpecies(evo.toId);
-                         if (!targetSpecies) return null;
-                         const candyCount = candies[selectedSpecies.family] || 0;
-                         const canEvolve = candyCount >= evo.candyCost;
-                         return (
-                           <button
-                             key={evo.toId}
-                             onClick={() => handleEvolve(evo.toId, evo.candyCost)}
-                             disabled={!canEvolve}
-                             className="w-full rounded-full py-3 flex justify-between items-center px-6 active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
-                             style={{
-                               background: 'linear-gradient(to bottom, #26C281 0%, #1DA66C 100%)',
-                               boxShadow: '0 4px 10px rgba(38,194,129,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
-                               border: '2px solid #148A58'
-                             }}
-                           >
-                             <span className="text-white font-black tracking-widest text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-sans">
-                               EVOLVE TO {targetSpecies.name.toUpperCase()}
-                               {evo.item && <span className="block text-[10px] font-bold normal-case opacity-80">Requires {evo.item}</span>}
-                             </span>
-                             <div className="flex items-center gap-1 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-lg">
-                               <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" />
-                               <span>{evo.candyCost}</span>
-                             </div>
-                           </button>
-                         );
-                       })}
-                     </div>
-                   )}
-                 </>
-               )}
-             </div>
+        {selectedSpecies && selectedSeen && (
+          <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'tween', duration: 0.23 }} className="absolute inset-0 z-40 overflow-y-auto bg-white text-[#315d61]">
+            <div className="absolute inset-x-0 top-0 h-[54vh] opacity-35" style={{ background: `linear-gradient(180deg, ${TYPE_COLORS[selectedSpecies.types[0]]}, #dff4ee 55%, white 100%)` }} />
+            <div className="relative z-10 flex items-center justify-between px-4 pt-[max(18px,env(safe-area-inset-top))]"><button type="button" onClick={() => setSelectedId(null)} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/72 text-[#4f7473] shadow-sm backdrop-blur"><svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m15 18-6-6 6-6" /></svg></button><span className="rounded-full bg-white/65 px-3 py-1.5 text-xs font-black tracking-[0.12em] text-[#668481]">#{selectedSpecies.id.toString().padStart(3, '0')}</span><div className="h-11 w-11" /></div>
+            <div className="relative z-10 mt-3 flex h-56 items-center justify-center"><PokemonSprite id={selectedSpecies.id} name={selectedSpecies.name} variant="artwork" className={`h-full w-[72%] object-contain drop-shadow-[0_18px_20px_rgba(35,73,72,.22)] ${bestOwned ? '' : '[filter:brightness(0)_opacity(.55)]'}`} /></div>
+            <section className="relative z-10 min-h-[48vh] rounded-t-[34px] bg-white px-5 pb-[max(30px,env(safe-area-inset-bottom))] pt-6 shadow-[0_-10px_28px_rgba(35,73,72,.08)]">
+              <div className="text-center"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ba19e]">{bestOwned ? 'Caught' : 'Seen'}</p><h2 className="mt-1 text-3xl font-black tracking-[-0.04em]">{selectedSpecies.name}</h2><div className="mt-3 flex justify-center gap-2">{selectedSpecies.types.map((type) => <span key={type} className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-sm" style={{ background: TYPE_COLORS[type] }}><img src={getTypeIcon(type)} alt={type} className="h-4 w-4" onError={(event) => { event.currentTarget.style.display = 'none'; }} />{type}</span>)}</div></div>
+              <div className="mt-5 grid grid-cols-3 divide-x divide-[#e2ece9] rounded-2xl bg-[#f5f9f7] py-4 ring-1 ring-[#e5efec]"><div className="text-center"><p className="text-base font-black">{selectedSpecies.weightKg} kg</p><p className="mt-1 text-[9px] font-black uppercase tracking-wider text-[#8aa09d]">Weight</p></div><div className="text-center"><p className="text-base font-black">{bestOwned ? bestOwned.cp : maxCP(selectedSpecies.baseStats)}</p><p className="mt-1 text-[9px] font-black uppercase tracking-wider text-[#8aa09d]">{bestOwned ? 'Best CP' : 'Max CP'}</p></div><div className="text-center"><p className="text-base font-black">{selectedSpecies.heightM} m</p><p className="mt-1 text-[9px] font-black uppercase tracking-wider text-[#8aa09d]">Height</p></div></div>
+              <div className="mt-5 rounded-2xl bg-[#f7faf9] p-4 ring-1 ring-[#e6efec]"><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8aa09d]">Pokédex entry</p><p className="mt-2 text-sm leading-6 text-[#6f8985]">A discovered creature from Generation {selectedSpecies.generation}. Continue exploring to learn more about its habitats, forms, and evolution family.</p></div>
+              {bestOwned && <div className="mt-5 rounded-2xl bg-[#f4f9f7] p-4 ring-1 ring-[#e4eeeb]"><div className="flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8aa09d]">Family candy</p><p className="text-xl font-black">{candies[selectedSpecies.family] || 0}</p></div><img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="h-10 w-10" onError={(event) => { event.currentTarget.style.display = 'none'; }} /></div></div>}
+              {bestOwned && selectedSpecies.evolutions.map((evolution) => {
+                const target = getSpecies(evolution.toId);
+                if (!target) return null;
+                const canEvolve = (candies[selectedSpecies.family] || 0) >= evolution.candyCost;
+                return <button key={`${evolution.toId}-${evolution.candyCost}`} type="button" onClick={() => onEvolve(bestOwned.uid, evolution.toId, evolution.candyCost)} disabled={!canEvolve} className="mt-4 flex w-full items-center justify-between rounded-full bg-gradient-to-r from-[#55c995] to-[#28a6a5] px-5 py-3.5 text-white shadow-lg disabled:opacity-45"><span className="text-sm font-black uppercase tracking-[0.12em]">Evolve to {target.name}</span><span className="text-sm font-black">{evolution.candyCost} candy</span></button>;
+              })}
+            </section>
           </motion.div>
         )}
       </AnimatePresence>
