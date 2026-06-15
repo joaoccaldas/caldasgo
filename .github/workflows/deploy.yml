@@ -1,46 +1,32 @@
-name: Deploy current main to GitHub Pages
+name: Deploy
 
 on:
   push:
-    branches: ['main']
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
 
-concurrency:
-  group: pages-current-main
-  cancel-in-progress: true
-
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout current main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 1
+      - uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Install locked dependencies
-        run: npm ci
+      - run: npm ci
+      - run: npm run build
 
-      - name: Build production bundle
-        run: npm run build
-
-      - name: Write deployed revision markers
-        run: |
-          printf '{"commit":"%s","workflow":"deploy-current-main","builtAt":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/deployment.json
+      - run: |
+          printf '{"commit":"%s","builtAt":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/deployment.json
           cp public/release.json dist/release.json
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v3
+      - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
