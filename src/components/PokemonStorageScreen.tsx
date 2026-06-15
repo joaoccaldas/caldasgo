@@ -14,7 +14,21 @@ interface PokemonStorageScreenProps {
   stardust: number;
   onEvolve: (uid: string, toSpeciesId: number, candyCost: number) => Promise<boolean>;
   onPowerUp: (uid: string) => Promise<boolean>;
+  onToggleFavorite: (uid: string) => Promise<void>;
 }
+
+// The real game marks a favorited Pokémon with a gold star, both in the
+// storage grid and on the detail screen.
+const StarIcon: React.FC<{ filled: boolean; className?: string }> = ({ filled, className }) => (
+  <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+    <path
+      d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.6 5.9 20.4l1.5-6.8L2.2 9l6.9-.7z"
+      fill={filled ? '#f6a821' : 'none'}
+      stroke={filled ? '#e08a10' : '#cbd5e1'}
+      strokeWidth="1.5"
+    />
+  </svg>
+);
 
 const CANDY_ICON = 'https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png';
 
@@ -40,7 +54,7 @@ const STORAGE_CAP = 300;
 const ivPercent = (ivs: OwnedPokemon['ivs']) =>
   Math.round(((ivs.attack + ivs.defense + ivs.stamina) / 45) * 100);
 
-const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, owned, candies, stardust, onEvolve, onPowerUp }) => {
+const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, owned, candies, stardust, onEvolve, onPowerUp, onToggleFavorite }) => {
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
@@ -120,8 +134,11 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                   key={p.uid}
                   onClick={() => setSelectedUid(p.uid)}
                   style={{ background: `linear-gradient(to bottom, ${TYPE_COLORS[species.types[0]]}26 0%, #ffffff 72%)` }}
-                  className="aspect-square border border-slate-200 rounded-lg shadow-sm flex flex-col items-center overflow-hidden active:scale-95 transition-transform p-1"
+                  className="relative aspect-square border border-slate-200 rounded-lg shadow-sm flex flex-col items-center overflow-hidden active:scale-95 transition-transform p-1"
                 >
+                  {p.favorite && (
+                    <StarIcon filled className="absolute top-1 right-1 w-3.5 h-3.5 drop-shadow-sm z-10" />
+                  )}
                   {/* CP on its own top strip so it never collides with the sprite */}
                   <span className="text-[11px] font-black text-slate-600 tracking-wide leading-none pt-1 shrink-0">
                     CP {p.cp}
@@ -180,6 +197,13 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
               </button>
               <span className="text-slate-400 font-black text-sm tracking-widest">#{selectedSpecies.id.toString().padStart(3, '0')}</span>
+              <button
+                onClick={() => onToggleFavorite(selected.uid)}
+                className="w-10 h-10 flex items-center justify-center active:bg-slate-100 rounded-full"
+                aria-label={selected.favorite ? 'Remove favorite' : 'Mark as favorite'}
+              >
+                <StarIcon filled={!!selected.favorite} className="w-7 h-7" />
+              </button>
             </div>
 
             {/* CP Badge */}
@@ -199,6 +223,7 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
               <PokemonSprite
                 id={selectedSpecies.id}
                 name={selectedSpecies.name}
+                variant="artwork"
                 className="w-[65%] h-full object-contain drop-shadow-2xl"
               />
             </motion.div>

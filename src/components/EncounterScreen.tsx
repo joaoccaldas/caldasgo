@@ -150,6 +150,7 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
                 <PokemonSprite
                   id={spawn.speciesId}
                   name={spawn.species.name}
+                  variant="artwork"
                   className="w-full h-full object-contain drop-shadow-2xl"
                 />
               </motion.div>

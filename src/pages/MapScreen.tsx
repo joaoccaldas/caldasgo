@@ -226,6 +226,7 @@ const MapScreen: React.FC = () => {
           stardust={collection.stardust}
           onEvolve={collection.evolve}
           onPowerUp={collection.powerUp}
+          onToggleFavorite={collection.toggleFavorite}
         />
       )}
 

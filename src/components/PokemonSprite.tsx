@@ -8,32 +8,49 @@ interface PokemonSpriteProps {
   name: string;
   shiny?: boolean;
   className?: string;
+  /**
+   * 'icon' uses the small ~80px PoGo map-marker sprite first (authentic look for
+   * grid thumbnails and map markers). 'artwork' starts with PokeAPI's 475px
+   * official artwork instead, so large detail views (Pokédex, Storage, Encounter)
+   * don't look blurry when scaled up. Both variants fall through the same chain.
+   */
+  variant?: 'icon' | 'artwork';
 }
 
 /**
- * Renders a Pokémon using the authentic Pokémon GO in-game sprite, with a
- * graceful fallback chain so nothing ever shows a broken-image glyph:
- *   real PoGo sprite (PokeMiners) -> PokeAPI official artwork -> basic sprite -> Poké Ball.
- * Higher gen-8/9 dex numbers that PokeMiners doesn't host resolve via the artwork step.
+ * Renders a Pokémon with a graceful fallback chain so nothing ever shows a
+ * broken-image glyph. The starting point depends on `variant`, but every chain
+ * ends at: PoGo sprite -> PokeAPI official artwork -> basic sprite -> Poké Ball.
  */
-const PokemonSprite: React.FC<PokemonSpriteProps> = ({ id, name, shiny, className }) => {
+const PokemonSprite: React.FC<PokemonSpriteProps> = ({ id, name, shiny, className, variant = 'icon' }) => {
   const pogo = getPogoSprite(id, shiny);
   const artwork = shiny ? getShinyPokemonImage(id) : getPokemonImage(id);
   const basic = shiny ? `${SPRITE_BASE}shiny/${id}.png` : `${SPRITE_BASE}${id}.png`;
+  const initial = variant === 'artwork' ? artwork : pogo;
 
   return (
     <img
-      src={pogo}
+      src={initial}
       alt={name}
       className={className}
       onError={(e) => {
         const img = e.currentTarget;
-        if (img.src === pogo) {
-          img.src = artwork;
-        } else if (img.src === artwork) {
-          img.src = basic;
-        } else if (img.src !== FALLBACK_ICON) {
-          img.src = FALLBACK_ICON;
+        if (variant === 'artwork') {
+          if (img.src === artwork) {
+            img.src = pogo;
+          } else if (img.src === pogo) {
+            img.src = basic;
+          } else if (img.src !== FALLBACK_ICON) {
+            img.src = FALLBACK_ICON;
+          }
+        } else {
+          if (img.src === pogo) {
+            img.src = artwork;
+          } else if (img.src === artwork) {
+            img.src = basic;
+          } else if (img.src !== FALLBACK_ICON) {
+            img.src = FALLBACK_ICON;
+          }
         }
       }}
     />

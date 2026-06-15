@@ -95,6 +95,17 @@ export const useCollection = () => {
     [owned, candies],
   );
 
+  const toggleFavorite = useCallback(
+    async (uid: string) => {
+      const pokemon = owned.find(p => p.uid === uid);
+      if (!pokemon) return;
+
+      const ownedList = await updateOwnedPokemon(uid, { favorite: !pokemon.favorite });
+      setOwned(ownedList);
+    },
+    [owned],
+  );
+
   const powerUp = useCallback(
     async (uid: string) => {
       const pokemon = owned.find(p => p.uid === uid);
@@ -120,5 +131,5 @@ export const useCollection = () => {
     [owned, candies, stardust],
   );
 
-  return { owned, candies, stardust, seen, catchPokemon, evolve, powerUp, recordSeen };
+  return { owned, candies, stardust, seen, catchPokemon, evolve, powerUp, recordSeen, toggleFavorite };
 };

@@ -26,6 +26,7 @@ export interface OwnedPokemon {
   ivs: IVs;
   cp: number;
   caughtAt: number; // timestamp
+  favorite?: boolean;
 }
 
 export interface Inventory {

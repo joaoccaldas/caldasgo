@@ -28,8 +28,10 @@ export interface PokemonSpecies {
 }
 
 /**
- * Curated roster of 256 Pokémon spanning Generations 1-9, including every Legendary,
- * Mythical, Ultra Beast and Paradox Pokémon through June 2026 (Gen 9 / The Indigo Disk).
+ * Curated roster of 263 Pokémon spanning Generations 1-9, including every Legendary,
+ * Mythical, Ultra Beast and Paradox Pokémon through June 2026 (Gen 9 / The Indigo Disk),
+ * plus the community-recognized hardest-to-catch species (Mewtwo, Mew, Lugia, Palkia,
+ * the Lake Guardian trio, Sigilyph, Larvesta and the Salandit line).
  * Base stats, types, families and evolution/candy costs are sourced from the real
  * Pokémon GO GAME_MASTER data.
  */
@@ -367,6 +369,18 @@ export const POKEMON_DATABASE: PokemonSpecies[] = [
   { id: 479, name: 'Rotom', types: ['electric', 'ghost'], generation: 4, rarity: 'rare', family: 'ROTOM', candyToEvolve: 25,
     baseStats: { attack: 185, defense: 159, stamina: 137 }, heightM: 0.3, weightKg: 0.3,
     evolutions: [] },
+  // The Lake Guardian trio - each one is region-locked to a different part of the
+  // world and only appears in time-limited 5-Star Raids, making the full set a
+  // notoriously hard catch.
+  { id: 480, name: 'Uxie', types: ['psychic'], generation: 4, rarity: 'legendary', family: 'UXIE', candyToEvolve: 0,
+    baseStats: { attack: 136, defense: 207, stamina: 146 }, heightM: 0.3, weightKg: 0.3,
+    evolutions: [] },
+  { id: 481, name: 'Mesprit', types: ['psychic'], generation: 4, rarity: 'legendary', family: 'MESPRIT', candyToEvolve: 0,
+    baseStats: { attack: 167, defense: 167, stamina: 190 }, heightM: 0.3, weightKg: 0.3,
+    evolutions: [] },
+  { id: 482, name: 'Azelf', types: ['psychic'], generation: 4, rarity: 'legendary', family: 'AZELF', candyToEvolve: 0,
+    baseStats: { attack: 244, defense: 145, stamina: 146 }, heightM: 0.3, weightKg: 0.3,
+    evolutions: [] },
   { id: 483, name: 'Dialga', types: ['steel', 'dragon'], generation: 4, rarity: 'legendary', family: 'DIALGA', candyToEvolve: 25,
     baseStats: { attack: 275, defense: 211, stamina: 205 }, heightM: 5.4, weightKg: 683,
     evolutions: [] },
@@ -436,6 +450,11 @@ export const POKEMON_DATABASE: PokemonSpecies[] = [
   { id: 519, name: 'Pidove', types: ['normal', 'flying'], generation: 5, rarity: 'common', family: 'PIDOVE', candyToEvolve: 25,
     baseStats: { attack: 98, defense: 80, stamina: 137 }, heightM: 0.3, weightKg: 2.1,
     evolutions: [] },
+  // Region-locked to Greece, Israel and Egypt with very sparse spawns - one of the
+  // hardest non-Legendary Pokémon to ever find in the wild.
+  { id: 561, name: 'Sigilyph', types: ['psychic', 'flying'], generation: 5, rarity: 'rare', family: 'SIGILYPH', candyToEvolve: 0,
+    baseStats: { attack: 240, defense: 178, stamina: 158 }, heightM: 1.4, weightKg: 3.8,
+    evolutions: [] },
   { id: 609, name: 'Chandelure', types: ['ghost', 'fire'], generation: 5, rarity: 'rare', family: 'LITWICK', candyToEvolve: 25,
     baseStats: { attack: 271, defense: 182, stamina: 155 }, heightM: 1, weightKg: 34.3,
     evolutions: [] },
@@ -445,9 +464,14 @@ export const POKEMON_DATABASE: PokemonSpecies[] = [
   { id: 635, name: 'Hydreigon', types: ['dark', 'dragon'], generation: 5, rarity: 'rare', family: 'DEINO', candyToEvolve: 25,
     baseStats: { attack: 256, defense: 188, stamina: 211 }, heightM: 1.8, weightKg: 160,
     evolutions: [] },
+  // Larvesta can't be encountered in the wild at all - it only hatches from 5km/10km
+  // eggs, and needs a steep 400 candy to evolve into Volcarona.
+  { id: 636, name: 'Larvesta', types: ['bug', 'fire'], generation: 5, rarity: 'rare', family: 'LARVESTA', candyToEvolve: 400,
+    baseStats: { attack: 178, defense: 109, stamina: 211 }, heightM: 1.1, weightKg: 28.8,
+    evolutions: [{ toId: 637, candyCost: 400 }] },
   { id: 637, name: 'Volcarona', types: ['bug', 'fire'], generation: 5, rarity: 'rare', family: 'LARVESTA', candyToEvolve: 25,
     baseStats: { attack: 264, defense: 189, stamina: 198 }, heightM: 1.6, weightKg: 46,
-    evolutions: [] },
+    evolutions: [], evolvesFromId: 636 },
   { id: 638, name: 'Cobalion', types: ['steel', 'fighting'], generation: 5, rarity: 'legendary', family: 'COBALION', candyToEvolve: 25,
     baseStats: { attack: 192, defense: 229, stamina: 209 }, heightM: 2.1, weightKg: 250,
     evolutions: [] },
@@ -580,6 +604,14 @@ export const POKEMON_DATABASE: PokemonSpecies[] = [
   { id: 748, name: 'Toxapex', types: ['poison', 'water'], generation: 7, rarity: 'rare', family: 'MAREANIE', candyToEvolve: 0,
     baseStats: { attack: 114, defense: 273, stamina: 137 }, heightM: 0.7, weightKg: 14.5,
     evolutions: [] },
+  // Salandit only hatches from 12km eggs, and Salazzle requires a female Salandit
+  // (a roughly 1-in-8 chance) - making the evolved form especially elusive.
+  { id: 757, name: 'Salandit', types: ['poison', 'fire'], generation: 7, rarity: 'rare', family: 'SALANDIT', candyToEvolve: 50,
+    baseStats: { attack: 159, defense: 90, stamina: 120 }, heightM: 0.6, weightKg: 4.8,
+    evolutions: [{ toId: 758, candyCost: 50 }] },
+  { id: 758, name: 'Salazzle', types: ['poison', 'fire'], generation: 7, rarity: 'rare', family: 'SALANDIT', candyToEvolve: 0,
+    baseStats: { attack: 207, defense: 119, stamina: 146 }, heightM: 1.2, weightKg: 22.2,
+    evolutions: [], evolvesFromId: 757 },
   { id: 772, name: 'Type: Null', types: ['normal'], generation: 7, rarity: 'rare', family: 'TYPE_NULL', candyToEvolve: 0,
     baseStats: { attack: 184, defense: 184, stamina: 216 }, heightM: 1.9, weightKg: 120.5,
     evolutions: [{ toId: 773, candyCost: 200 }] },

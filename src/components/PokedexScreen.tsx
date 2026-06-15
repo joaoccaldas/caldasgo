@@ -262,6 +262,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                  id={selectedSpecies.id}
                  name={selectedSpecies.name}
                  shiny={selectedShiny}
+                 variant="artwork"
                  className="w-[70%] h-full object-contain drop-shadow-2xl"
                />
              </motion.div>
