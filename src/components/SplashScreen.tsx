@@ -47,14 +47,18 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
           transition={{ type: 'spring', damping: 12 }}
           className="relative"
         >
-          {/* Poké Ball mark */}
-          <div className="w-24 h-24 mx-auto mb-5 rounded-full bg-white border-[6px] border-slate-900 shadow-2xl relative overflow-hidden">
+          {/* Poké Ball mark — gently bobs while loading */}
+          <motion.div
+            animate={{ y: [-6, 6], rotate: [-3, 3] }}
+            transition={{ repeat: Infinity, duration: 2.4, repeatType: 'mirror', ease: 'easeInOut' }}
+            className="w-24 h-24 mx-auto mb-5 rounded-full bg-white border-[6px] border-slate-900 shadow-2xl relative overflow-hidden"
+          >
             <div className="absolute top-0 left-0 right-0 h-1/2 bg-[#ee1c25]" />
             <div className="absolute top-1/2 left-0 right-0 h-[6px] -translate-y-1/2 bg-slate-900" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full border-[5px] border-slate-900" />
-          </div>
-          <h1 className="text-6xl font-black tracking-tight text-center">
-            <span className="text-[#f6c243] drop-shadow-[0_3px_0_rgba(11,42,58,0.9)]">Caldas</span>
+          </motion.div>
+          <h1 className="text-6xl font-display font-extrabold tracking-tight text-center">
+            <span className="text-pogo-gold drop-shadow-[0_3px_0_rgba(11,42,58,0.9)]">Caldas</span>
             <span className="text-white drop-shadow-[0_3px_0_rgba(11,42,58,0.9)]">GO</span>
           </h1>
         </motion.div>
@@ -68,7 +72,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onEnter }) => {
             animate={{ scale: 1, opacity: 1 }}
             whileTap={{ scale: 0.95 }}
             onClick={onEnter}
-            className="px-12 py-3 rounded-full bg-[#f6c243] text-[#0b2a3a] font-black text-lg tracking-widest shadow-[0_6px_0_#c99526] active:translate-y-1 active:shadow-[0_3px_0_#c99526] transition-all"
+            className="px-14 py-3.5 rounded-pogo-pill bg-pogo-gold text-pogo-navy font-display font-extrabold text-xl tracking-widest shadow-[0_6px_0_#c99526] active:translate-y-1 active:shadow-[0_3px_0_#c99526] transition-all"
           >
             PLAY
           </motion.button>

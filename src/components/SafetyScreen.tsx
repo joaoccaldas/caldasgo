@@ -36,7 +36,7 @@ const SafetyScreen: React.FC<SafetyScreenProps> = ({ onAccept }) => {
           <rect x="80" y="78" width="8" height="2.5" fill="#f9e26b" />
         </svg>
 
-        <h2 className="text-2xl font-black text-[#33524f] text-center mb-3 tracking-tight">
+        <h2 className="text-2xl font-display font-extrabold text-[#33524f] text-center mb-3 tracking-tight">
           Stay Aware of Your Surroundings
         </h2>
         <p className="text-[#6a8483] text-center font-medium leading-relaxed mb-8 px-2">
@@ -46,7 +46,7 @@ const SafetyScreen: React.FC<SafetyScreenProps> = ({ onAccept }) => {
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={onAccept}
-          className="w-full max-w-[220px] py-3.5 rounded-full text-white font-black text-lg tracking-widest shadow-lg"
+          className="w-full max-w-[220px] py-3.5 rounded-pogo-pill text-white font-display font-extrabold text-lg tracking-widest shadow-pogo-high"
           style={{ background: 'linear-gradient(to right, #8fd99a 0%, #2bb9b0 60%, #1ba7a0 100%)' }}
         >
           OK

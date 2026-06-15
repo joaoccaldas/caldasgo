@@ -10,6 +10,7 @@ import {
 } from '../data/pokemonDatabase';
 import { maxCP } from '../data/cpTable';
 import PokemonSprite from './PokemonSprite';
+import { typeBackdrop } from '../theme';
 import type { CandyBag, OwnedPokemon } from '../types';
 
 interface PokedexScreenProps {
@@ -104,7 +105,8 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 50 }}
-      className="absolute inset-0 z-[700] bg-[#bfe6f2] flex flex-col font-sans overflow-hidden"
+      className="absolute inset-0 z-[700] flex flex-col font-sans overflow-hidden"
+      style={{ background: 'linear-gradient(180deg, #d6f3ec 0%, #b7e6f0 100%)' }}
     >
       {/* Search Bar Overlay */}
       <AnimatePresence>
@@ -140,15 +142,18 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
 
       {/* Top bar: region label, caught/total pill, Pokédex icon */}
       <div className="shrink-0 px-4 pt-12 pb-2 flex items-center justify-between relative z-10">
-        <button onClick={() => setIsPickingRegion(true)} className="text-[#1f6f6b] font-black tracking-wide text-lg flex items-center gap-1">
+        <button onClick={() => setIsPickingRegion(true)} className="text-pogo-teal font-extrabold tracking-wide text-lg flex items-center gap-1">
           {regionLabel}
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1f6f6b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1b6e7e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         </button>
-        <div className="bg-[#2a9ab5] px-5 py-1.5 rounded-full shadow-md">
-          <span className="text-white font-black text-lg tracking-wide">{caughtSpeciesCount} / {POKEMON_DATABASE.length}</span>
+        <div className="bg-pogo-teal px-5 py-1.5 rounded-pogo-pill shadow-pogo-mid">
+          <span className="text-white font-display font-extrabold text-lg tracking-wide">{caughtSpeciesCount} / {POKEMON_DATABASE.length}</span>
         </div>
-        <svg viewBox="0 0 24 24" className="w-9 h-9" fill="none" stroke="#1f6f6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="5" y="3" width="14" height="18" rx="2" /><circle cx="9" cy="8" r="2.2" /><path d="M14 7h3M14 10h3M8 14h8M8 17h8" />
+        <svg viewBox="0 0 24 24" className="w-9 h-9" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="5" fill="#ff5b6e" />
+          <circle cx="9" cy="8.5" r="2.6" fill="#fff" /><circle cx="9" cy="8.5" r="1.2" fill="#3b82f6" />
+          <rect x="13.5" y="6.5" width="6" height="2" rx="1" fill="#fff" />
+          <rect x="6" y="13.5" width="12" height="2" rx="1" fill="#fff" /><rect x="6" y="17" width="12" height="2" rx="1" fill="#fff" />
         </svg>
       </div>
 
@@ -160,16 +165,22 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
             const shiny = isShowcaseRarity(species.rarity);
             const seenOnly = !caught && !shiny && seenSet.has(species.id);
             const clickable = !!caught || shiny;
+            const typeColor = TYPE_COLORS[species.types[0]];
 
             return (
               <button
                 key={species.id}
                 onClick={() => clickable && setSelectedSpeciesId(species.id)}
-                className={`aspect-[4/5] rounded-2xl flex flex-col items-center justify-center relative overflow-hidden ${clickable ? 'active:scale-95 transition-transform' : ''} ${shiny ? 'bg-amber-50 ring-1 ring-amber-300' : 'bg-[#d6eef8]'}`}
+                className={`aspect-[4/5] rounded-pogo-md flex flex-col items-center justify-center relative overflow-hidden border ${clickable ? 'active:scale-95 transition-transform bg-white border-white shadow-pogo-low' : 'bg-white/55 border-white/40'}`}
+                style={clickable ? { boxShadow: `0 2px 8px ${typeColor}33, inset 0 0 0 2px ${typeColor}22` } : undefined}
               >
-                {shiny && <span className="absolute top-1 right-1.5 text-xs" title="Shiny">✨</span>}
+                {/* Type-colored accent wash behind a registered Pokémon */}
+                {clickable && (
+                  <div className="absolute inset-x-0 top-0 h-2/3 opacity-25" style={{ background: `radial-gradient(circle at 50% 20%, ${typeColor} 0%, transparent 70%)` }} />
+                )}
+                {shiny && <span className="absolute top-1 right-1.5 text-xs z-20" title="Shiny">✨</span>}
                 {caught && caught.length > 1 && (
-                  <span className="absolute top-1 left-1.5 bg-[#2a7a8c] text-white font-bold text-[9px] px-1.5 rounded-full">x{caught.length}</span>
+                  <span className="absolute top-1 left-1.5 bg-pogo-teal text-white font-display font-extrabold text-[9px] px-1.5 rounded-pogo-pill z-20">x{caught.length}</span>
                 )}
 
                 <div className="flex-1 w-full flex items-center justify-center p-2 relative">
@@ -177,12 +188,12 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                   {clickable ? (
                     <PokemonSprite id={species.id} name={species.name} shiny={shiny} className="max-h-full max-w-full object-contain drop-shadow relative z-10" />
                   ) : seenOnly ? (
-                    <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(0.45)]" />
+                    <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(0.4)]" />
                   ) : (
-                    <span className="text-[#a3cdda] font-black text-xl">?</span>
+                    <span className="text-[#a3cdda] font-display font-extrabold text-xl">?</span>
                   )}
                 </div>
-                <span className="text-[#2a7a8c] font-black text-xs tracking-wider pb-1.5">
+                <span className={`font-display font-extrabold text-xs tracking-wider pb-1.5 ${clickable ? 'text-pogo-teal' : 'text-[#7fb4c4]'}`}>
                   {species.id.toString().padStart(4, '0')}
                 </span>
               </button>
@@ -202,8 +213,8 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
           <button
             key={filter.key}
             onClick={() => setRarityFilter(filter.key)}
-            className={`px-4 py-1.5 rounded-full text-xs font-black tracking-wide uppercase whitespace-nowrap shadow-sm transition-colors ${
-              rarityFilter === filter.key ? 'bg-[#2a9ab5] text-white' : 'bg-white/85 text-[#3a7a8c]'
+            className={`px-4 py-1.5 rounded-pogo-pill text-xs font-extrabold tracking-wide uppercase whitespace-nowrap transition-colors ${
+              rarityFilter === filter.key ? 'bg-pogo-teal text-white shadow-pogo-mid' : 'bg-pogo-glass text-pogo-teal shadow-pogo-low border border-pogo-glass-border'
             }`}
           >
             {filter.label}
@@ -215,19 +226,19 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
       <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-12 z-20">
         <button
           onClick={() => setIsSearching(true)}
-          className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center"
+          className="w-12 h-12 rounded-full bg-white shadow-pogo-mid flex items-center justify-center active:scale-95 transition-transform"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a7a8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1b6e7e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         </button>
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={onClose}
-          className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center"
+          className="w-14 h-14 rounded-full bg-white shadow-pogo-high flex items-center justify-center"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a7a8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1b6e7e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </motion.button>
-        <button onClick={() => setIsPickingRegion(true)} className="w-12 h-12 rounded-full bg-white shadow-md flex flex-col items-center justify-center">
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#2a7a8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 15v3a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-3"/></svg>
+        <button onClick={() => setIsPickingRegion(true)} className="w-12 h-12 rounded-full bg-white shadow-pogo-mid flex flex-col items-center justify-center active:scale-95 transition-transform">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#1b6e7e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 15v3a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-3"/></svg>
         </button>
       </div>
 
@@ -293,10 +304,10 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
             transition={{ type: 'tween', duration: 0.2 }}
             className="absolute inset-0 bg-white z-50 flex flex-col font-sans overflow-y-auto"
           >
-             {/* Gradient Background matching Pokemon type */}
+             {/* Radial type-tinted backdrop, matching GO's detail sheet */}
              <div
-                className="absolute inset-0 opacity-20 z-0"
-                style={{ background: `linear-gradient(to bottom, ${TYPE_COLORS[selectedSpecies.types[0]]} 0%, white 50%)` }}
+                className="absolute inset-0 z-0"
+                style={{ background: typeBackdrop(selectedSpecies.types[0]) }}
              />
 
              {/* Top Nav */}
@@ -309,9 +320,9 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
 
              {/* CP Badge */}
              <div className="w-full flex justify-center mt-2 z-10 relative">
-               <div className="bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200 z-10 flex items-baseline gap-1">
-                 <span className="text-xs font-bold text-slate-500">{bestOwned ? 'CP' : 'MAX CP'}</span>
-                 <span className="text-2xl font-black text-slate-800 tracking-tighter">
+               <div className="bg-white px-5 py-1 rounded-pogo-pill shadow-pogo-mid border border-slate-100 z-10 flex items-baseline gap-1.5">
+                 <span className="text-xs font-extrabold text-slate-500">{bestOwned ? 'CP' : 'MAX CP'}</span>
+                 <span className="text-2xl font-display font-extrabold text-slate-800">
                    {bestOwned ? bestOwned.cp : maxCP(selectedSpecies.baseStats)}
                  </span>
                </div>
