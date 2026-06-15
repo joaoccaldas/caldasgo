@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import MapScreen from './pages/MapScreen';
 import SplashScreen from './components/SplashScreen';
 import SafetyScreen from './components/SafetyScreen';
+import InstallPrompt from './components/InstallPrompt';
 
 type BootStage = 'splash' | 'safety' | 'playing';
 
@@ -16,6 +17,7 @@ function App() {
         {stage === 'splash' && <SplashScreen key="splash" onEnter={() => setStage('safety')} />}
         {stage === 'safety' && <SafetyScreen key="safety" onAccept={() => setStage('playing')} />}
       </AnimatePresence>
+      {stage === 'playing' && <InstallPrompt />}
     </div>
   );
 }
