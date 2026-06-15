@@ -6,9 +6,10 @@ interface MainMenuProps {
   onClose: () => void;
   onOpenPokedex: () => void;
   onOpenInventory: () => void;
+  onOpenStorage: () => void;
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ onClose, onOpenPokedex, onOpenInventory }) => {
+const MainMenu: React.FC<MainMenuProps> = ({ onClose, onOpenPokedex, onOpenInventory, onOpenStorage }) => {
   return (
     <motion.div 
       initial={{ opacity: 0, y: '100%' }}
@@ -67,7 +68,11 @@ const MainMenu: React.FC<MainMenuProps> = ({ onClose, onOpenPokedex, onOpenInven
           </motion.button>
 
           {/* Right: POKEMON */}
-          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.25 }} className="absolute right-8 -translate-y-2 flex flex-col items-center gap-1">
+          <motion.button
+            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.25 }}
+            onClick={onOpenStorage}
+            className="absolute right-8 -translate-y-2 flex flex-col items-center gap-1"
+          >
              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.4)] border-[3px] border-white relative overflow-hidden">
                 <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/Item_0001.png" alt="Pokemon" className="w-[80%] h-[80%] object-contain drop-shadow-md" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" }} />
              </div>

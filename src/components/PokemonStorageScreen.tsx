@@ -1,0 +1,291 @@
+import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getSpecies, TYPE_COLORS } from '../data/pokemonDatabase';
+import PokemonSprite from './PokemonSprite';
+import type { CandyBag, OwnedPokemon } from '../types';
+
+interface PokemonStorageScreenProps {
+  onClose: () => void;
+  owned: OwnedPokemon[];
+  candies: CandyBag;
+  onEvolve: (uid: string, toSpeciesId: number, candyCost: number) => Promise<boolean>;
+}
+
+type SortKey = 'recent' | 'cp' | 'name' | 'number';
+
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: 'recent', label: 'Recent' },
+  { key: 'cp', label: 'CP' },
+  { key: 'name', label: 'Name' },
+  { key: 'number', label: 'Number' },
+];
+
+// Real Pokémon GO starts trainers with 300 storage; we mirror that cap for the header.
+const STORAGE_CAP = 300;
+
+const ivPercent = (ivs: OwnedPokemon['ivs']) =>
+  Math.round(((ivs.attack + ivs.defense + ivs.stamina) / 45) * 100);
+
+const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, owned, candies, onEvolve }) => {
+  const [sortKey, setSortKey] = useState<SortKey>('recent');
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
+
+  const sorted = useMemo(() => {
+    const list = [...owned];
+    switch (sortKey) {
+      case 'cp':
+        list.sort((a, b) => b.cp - a.cp);
+        break;
+      case 'name':
+        list.sort((a, b) => (getSpecies(a.speciesId)?.name || '').localeCompare(getSpecies(b.speciesId)?.name || ''));
+        break;
+      case 'number':
+        list.sort((a, b) => a.speciesId - b.speciesId);
+        break;
+      case 'recent':
+      default:
+        list.sort((a, b) => b.caughtAt - a.caughtAt);
+        break;
+    }
+    return list;
+  }, [owned, sortKey]);
+
+  const selected = selectedUid ? owned.find(p => p.uid === selectedUid) : undefined;
+  const selectedSpecies = selected ? getSpecies(selected.speciesId) : undefined;
+
+  const handleEvolve = async (toSpeciesId: number, candyCost: number) => {
+    if (!selected) return;
+    const ok = await onEvolve(selected.uid, toSpeciesId, candyCost);
+    // The uid stays the same after evolution, so the detail view just re-renders with the new species.
+    if (!ok) return;
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      className="absolute inset-0 z-[700] bg-[#f8fafc] flex flex-col font-sans overflow-hidden"
+    >
+      {/* Top Header - Authentic Green Banner */}
+      <div
+        className="h-20 flex flex-col justify-end items-center pb-2 relative z-10 shrink-0"
+        style={{
+          background: 'linear-gradient(to bottom, #2DBE72 0%, #1FA35E 100%)',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2)',
+        }}
+      >
+        <h1 className="text-white font-black tracking-[0.15em] text-xl drop-shadow-md font-sans">POKÉMON</h1>
+        <span className="absolute right-4 bottom-2.5 text-white/90 font-bold text-sm tracking-wide">
+          {owned.length}/{STORAGE_CAP}
+        </span>
+      </div>
+
+      {/* Sort Bar */}
+      <div className="flex items-center gap-2 px-3 py-2 bg-white border-b-2 border-slate-200 shadow-sm relative z-10 shrink-0 overflow-x-auto">
+        <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider shrink-0">Sort</span>
+        {SORTS.map(s => (
+          <button
+            key={s.key}
+            onClick={() => setSortKey(s.key)}
+            className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide whitespace-nowrap transition-colors ${
+              sortKey === s.key ? 'bg-[#1FA35E] text-white shadow-sm' : 'bg-slate-100 text-slate-500'
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Grid */}
+      <div className="flex-1 overflow-y-auto px-2 pt-2 pb-24">
+        {owned.length === 0 ? (
+          <div className="py-16 text-center text-slate-400 font-medium px-8">
+            You haven't caught any Pokémon yet. Tap one on the map to start your collection!
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {sorted.map(p => {
+              const species = getSpecies(p.speciesId);
+              if (!species) return null;
+              return (
+                <button
+                  key={p.uid}
+                  onClick={() => setSelectedUid(p.uid)}
+                  className="aspect-square bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col items-center justify-end relative overflow-hidden active:scale-95 transition-transform pb-1"
+                >
+                  {/* CP badge top */}
+                  <span className="absolute top-1 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-500 tracking-wide">
+                    CP {p.cp}
+                  </span>
+                  <div className="flex-1 w-full flex items-center justify-center p-2 pt-4">
+                    <PokemonSprite
+                      id={species.id}
+                      name={species.name}
+                      className="w-full h-full object-contain drop-shadow-md"
+                    />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-700 truncate w-full text-center px-1">
+                    {species.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Close Button */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={onClose}
+          className="w-[72px] h-[72px] flex items-center justify-center bg-transparent border-none"
+        >
+          <img
+            src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Menu%20Icons/btn_close_normal.png"
+            alt="Close"
+            className="w-full h-full object-contain drop-shadow-lg"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        </motion.button>
+      </div>
+
+      {/* Individual Detail View */}
+      <AnimatePresence>
+        {selected && selectedSpecies && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'tween', duration: 0.2 }}
+            className="absolute inset-0 bg-white z-50 flex flex-col font-sans overflow-y-auto"
+          >
+            <div
+              className="absolute inset-0 opacity-20 z-0"
+              style={{ background: `linear-gradient(to bottom, ${TYPE_COLORS[selectedSpecies.types[0]]} 0%, white 50%)` }}
+            />
+
+            {/* Top Nav */}
+            <div className="w-full flex justify-between items-center p-4 z-10 pt-12">
+              <button onClick={() => setSelectedUid(null)} className="w-10 h-10 flex items-center justify-center text-slate-500 active:bg-slate-100 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <span className="text-slate-400 font-black text-sm tracking-widest">#{selectedSpecies.id.toString().padStart(3, '0')}</span>
+            </div>
+
+            {/* CP Badge */}
+            <div className="w-full flex justify-center mt-2 z-10 relative">
+              <div className="bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200 flex items-baseline gap-1">
+                <span className="text-xs font-bold text-slate-500">CP</span>
+                <span className="text-2xl font-black text-slate-800 tracking-tighter">{selected.cp}</span>
+              </div>
+            </div>
+
+            {/* Sprite */}
+            <motion.div
+              animate={{ y: [-5, 5] }}
+              transition={{ repeat: Infinity, duration: 4, repeatType: 'mirror', ease: 'easeInOut' }}
+              className="w-full h-[28vh] flex items-center justify-center relative z-10"
+            >
+              <PokemonSprite
+                id={selectedSpecies.id}
+                name={selectedSpecies.name}
+                className="w-[65%] h-full object-contain drop-shadow-2xl"
+              />
+            </motion.div>
+
+            {/* Info Sheet */}
+            <div className="w-full flex flex-col items-center z-10 mt-2 flex-1 bg-white pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-[2.5rem] pb-8">
+              <h2 className="text-3xl font-black text-slate-800 tracking-wide uppercase mb-1">{selectedSpecies.name}</h2>
+              <div className="text-slate-500 font-bold text-sm mb-4">
+                Level {selected.level} &middot; IV {ivPercent(selected.ivs)}%
+              </div>
+
+              {/* IV breakdown */}
+              <div className="w-full px-8 flex justify-center gap-8 mb-6 text-center">
+                <div className="flex flex-col items-center">
+                  <span className="text-lg font-black text-slate-800">{selected.ivs.attack}/15</span>
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider">ATTACK</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-lg font-black text-slate-800">{selected.ivs.defense}/15</span>
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider">DEFENSE</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-lg font-black text-slate-800">{selected.ivs.stamina}/15</span>
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider">STAMINA</span>
+                </div>
+              </div>
+
+              {/* Weight / Types / Height */}
+              <div className="w-full px-8 flex justify-between items-center mb-6">
+                <div className="flex flex-col items-center flex-1 border-r border-slate-200">
+                  <span className="text-lg font-black text-slate-800">{selectedSpecies.weightKg} <span className="text-xs">kg</span></span>
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">WEIGHT</span>
+                </div>
+                <div className="flex flex-col items-center flex-1 gap-1">
+                  <div className="flex gap-1 justify-center flex-wrap">
+                    {selectedSpecies.types.map(t => (
+                      <div key={t} className="px-2 py-0.5 rounded-full text-white text-[10px] font-bold uppercase shadow-sm" style={{ backgroundColor: TYPE_COLORS[t] }}>
+                        {t}
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">TYPE</span>
+                </div>
+                <div className="flex flex-col items-center flex-1 border-l border-slate-200">
+                  <span className="text-lg font-black text-slate-800">{selectedSpecies.heightM} <span className="text-xs">m</span></span>
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">HEIGHT</span>
+                </div>
+              </div>
+
+              {/* Candy */}
+              <div className="w-full px-8 flex justify-center gap-3 mb-6 items-center">
+                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-8 h-8 drop-shadow-sm" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <span className="font-black text-slate-800 text-xl">{candies[selectedSpecies.family] || 0}</span>
+                <span className="text-slate-400 font-bold text-xs tracking-wider uppercase">{selectedSpecies.family} CANDY</span>
+              </div>
+
+              {/* Evolve buttons */}
+              {selectedSpecies.evolutions.length > 0 && (
+                <div className="w-full px-8 flex flex-col gap-3">
+                  {selectedSpecies.evolutions.map(evo => {
+                    const target = getSpecies(evo.toId);
+                    if (!target) return null;
+                    const candyCount = candies[selectedSpecies.family] || 0;
+                    const canEvolve = candyCount >= evo.candyCost;
+                    return (
+                      <button
+                        key={evo.toId}
+                        onClick={() => handleEvolve(evo.toId, evo.candyCost)}
+                        disabled={!canEvolve}
+                        className="w-full rounded-full py-3 flex justify-between items-center px-6 active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
+                        style={{
+                          background: 'linear-gradient(to bottom, #26C281 0%, #1DA66C 100%)',
+                          boxShadow: '0 4px 10px rgba(38,194,129,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
+                          border: '2px solid #148A58',
+                        }}
+                      >
+                        <span className="text-white font-black tracking-widest text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-sans">
+                          EVOLVE TO {target.name.toUpperCase()}
+                          {evo.item && <span className="block text-[10px] font-bold normal-case opacity-80">Requires {evo.item}</span>}
+                        </span>
+                        <div className="flex items-center gap-1 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-lg">
+                          <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                          <span>{evo.candyCost}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
+export default PokemonStorageScreen;

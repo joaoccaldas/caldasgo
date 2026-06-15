@@ -10,11 +10,29 @@ interface HUDProps {
 const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
   return (
     <>
-      {/* Top Left: Avatar Profile & Level Progress */}
+      {/* Top Left: Avatar Profile with circular Level Ring (authentic PoGo) */}
       <div className="absolute top-12 left-4 z-[400] flex flex-col items-center pointer-events-auto">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-full border-[3px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden bg-slate-800">
-            {/* Avatar Image (Pikachu placeholder for trainer face) */}
+        <div className="relative w-[72px] h-[72px]">
+          {/* Circular XP progress ring */}
+          <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 72 72">
+            {/* Track */}
+            <circle cx="36" cy="36" r="33" fill="none" stroke="rgba(15,23,42,0.55)" strokeWidth="5" />
+            {/* Progress */}
+            <circle
+              cx="36"
+              cy="36"
+              r="33"
+              fill="none"
+              stroke="#fcd34d"
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeDasharray={2 * Math.PI * 33}
+              strokeDashoffset={2 * Math.PI * 33 * (1 - Math.min(1, Math.max(0, xpProgress)))}
+              style={{ filter: 'drop-shadow(0 0 3px rgba(252,211,77,0.8))', transition: 'stroke-dashoffset 0.4s ease' }}
+            />
+          </svg>
+          {/* Avatar Image (Pikachu placeholder for trainer face) */}
+          <div className="absolute inset-[6px] rounded-full border-2 border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden bg-slate-800">
             <img
               src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
               alt="Avatar"
@@ -23,16 +41,9 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
             />
           </div>
           {/* Level Badge */}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#3b82f6] text-white text-[11px] font-black px-3 py-[2px] rounded-full border border-white shadow-md z-10 whitespace-nowrap tracking-wide">
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-[#3b82f6] text-white text-[11px] font-black px-2.5 py-[1px] rounded-full border border-white shadow-md z-10 whitespace-nowrap tracking-wide">
             {playerLevel}
           </div>
-        </div>
-        {/* Level XP Bar */}
-        <div className="w-16 h-1.5 bg-slate-800/80 rounded-full mt-3 border border-slate-600/50 overflow-hidden backdrop-blur-sm">
-           <div
-             className="h-full bg-[#fcd34d] rounded-full shadow-[0_0_5px_rgba(252,211,77,0.8)]"
-             style={{ width: `${Math.round(xpProgress * 100)}%` }}
-           />
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import HUD from '../components/HUD';
 import MainMenu from '../components/MainMenu';
 import EncounterScreen from '../components/EncounterScreen';
 import PokedexScreen from '../components/PokedexScreen';
+import PokemonStorageScreen from '../components/PokemonStorageScreen';
 import InventoryScreen from '../components/InventoryScreen';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useSpawning } from '../hooks/useSpawning';
@@ -46,7 +47,7 @@ const MapScreen: React.FC = () => {
   const { spawnedPokemon, removeSpawn } = useSpawning(location);
   const trainer = useTrainer();
   const collection = useCollection();
-  const [activeOverlay, setActiveOverlay] = useState<'none' | 'menu' | 'pokedex' | 'inventory'>('none');
+  const [activeOverlay, setActiveOverlay] = useState<'none' | 'menu' | 'pokedex' | 'storage' | 'inventory'>('none');
   const [encounter, setEncounter] = useState<SpawnedPokemon | null>(null);
 
   // If GPS is completely blocked and hook hasn't yielded yet
@@ -148,12 +149,22 @@ const MapScreen: React.FC = () => {
         <MainMenu
           onClose={() => setActiveOverlay('none')}
           onOpenPokedex={() => setActiveOverlay('pokedex')}
+          onOpenStorage={() => setActiveOverlay('storage')}
           onOpenInventory={() => setActiveOverlay('inventory')}
         />
       )}
 
       {activeOverlay === 'pokedex' && (
         <PokedexScreen
+          onClose={() => setActiveOverlay('menu')}
+          owned={collection.owned}
+          candies={collection.candies}
+          onEvolve={collection.evolve}
+        />
+      )}
+
+      {activeOverlay === 'storage' && (
+        <PokemonStorageScreen
           onClose={() => setActiveOverlay('menu')}
           owned={collection.owned}
           candies={collection.candies}
