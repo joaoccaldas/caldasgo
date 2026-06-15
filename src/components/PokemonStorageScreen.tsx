@@ -1,10 +1,9 @@
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { getSpecies, getTypeIcon, TYPE_COLORS } from '../data/pokemonDatabase';
-import { getMoveset, getAppraisal } from '../data/moves';
-import { calculateHP, powerUpCost, MAX_LEVEL } from '../data/cpTable';
+import { getAppraisal, getMoveset } from '../data/moves';
+import { calculateHP, MAX_LEVEL, powerUpCost } from '../data/cpTable';
 import PokemonSprite from './PokemonSprite';
-import ScreenHeader from './ScreenHeader';
 import type { CandyBag, OwnedPokemon } from '../types';
 
 interface PokemonStorageScreenProps {
@@ -17,400 +16,193 @@ interface PokemonStorageScreenProps {
   onToggleFavorite: (uid: string) => Promise<void>;
 }
 
-// The real game marks a favorited Pokémon with a gold star, both in the
-// storage grid and on the detail screen.
-const StarIcon: React.FC<{ filled: boolean; className?: string }> = ({ filled, className }) => (
-  <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-    <path
-      d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.6 5.9 20.4l1.5-6.8L2.2 9l6.9-.7z"
-      fill={filled ? '#f6a821' : 'none'}
-      stroke={filled ? '#e08a10' : '#cbd5e1'}
-      strokeWidth="1.5"
-    />
-  </svg>
-);
-
-const CANDY_ICON = 'https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png';
-
-// Stardust is a glowing teal four-point sparkle in the real game.
-const StardustIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-    <path d="M12 1l2.2 7.4L21 11l-6.8 2.6L12 21l-2.2-7.4L3 11l6.8-2.6z" fill="#2dd4bf" stroke="#0d9488" strokeWidth="0.8" />
-  </svg>
-);
-
 type SortKey = 'recent' | 'cp' | 'name' | 'number';
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'recent', label: 'Recent' },
-  { key: 'cp', label: 'CP' },
-  { key: 'name', label: 'Name' },
-  { key: 'number', label: 'Number' },
-];
-
-// Real Pokémon GO starts trainers with 300 storage; we mirror that cap for the header.
 const STORAGE_CAP = 300;
+const CANDY_ICON = 'https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png';
 
-const ivPercent = (ivs: OwnedPokemon['ivs']) =>
-  Math.round(((ivs.attack + ivs.defense + ivs.stamina) / 45) * 100);
+const StarIcon = ({ filled, className = 'h-5 w-5' }: { filled: boolean; className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+    <path d="m12 2 2.9 6.3 6.9.7-5.2 4.6 1.5 6.8-6.1-2.8-6.1 2.8 1.5-6.8L2.2 9l6.9-.7L12 2Z" fill={filled ? '#f6b73c' : 'none'} stroke={filled ? '#db9121' : '#9bb2ae'} strokeWidth="1.5" />
+  </svg>
+);
 
-const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, owned, candies, stardust, onEvolve, onPowerUp, onToggleFavorite }) => {
+const StardustIcon = ({ className = 'h-5 w-5' }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} aria-hidden="true"><path d="m12 1 2.2 7.4L21 11l-6.8 2.6L12 21l-2.2-7.4L3 11l6.8-2.6L12 1Z" fill="#35c8ba" stroke="#168f88" strokeWidth=".8" /></svg>
+);
+
+const ivPercent = (ivs: OwnedPokemon['ivs']) => Math.round(((ivs.attack + ivs.defense + ivs.stamina) / 45) * 100);
+
+const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({
+  onClose,
+  owned,
+  candies,
+  stardust,
+  onEvolve,
+  onPowerUp,
+  onToggleFavorite,
+}) => {
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const sorted = useMemo(() => {
-    const list = [...owned];
+    const normalizedQuery = query.trim().toLowerCase();
+    const list = owned.filter((pokemon) => {
+      const species = getSpecies(pokemon.speciesId);
+      if (!species) return false;
+      if (favoritesOnly && !pokemon.favorite) return false;
+      if (!normalizedQuery) return true;
+      return species.name.toLowerCase().includes(normalizedQuery) || species.id.toString().includes(normalizedQuery) || `cp${pokemon.cp}`.includes(normalizedQuery.replace(/\s/g, ''));
+    });
+
     switch (sortKey) {
       case 'cp':
-        list.sort((a, b) => b.cp - a.cp);
-        break;
+        return list.sort((a, b) => b.cp - a.cp);
       case 'name':
-        list.sort((a, b) => (getSpecies(a.speciesId)?.name || '').localeCompare(getSpecies(b.speciesId)?.name || ''));
-        break;
+        return list.sort((a, b) => (getSpecies(a.speciesId)?.name || '').localeCompare(getSpecies(b.speciesId)?.name || ''));
       case 'number':
-        list.sort((a, b) => a.speciesId - b.speciesId);
-        break;
+        return list.sort((a, b) => a.speciesId - b.speciesId);
       case 'recent':
       default:
-        list.sort((a, b) => b.caughtAt - a.caughtAt);
-        break;
+        return list.sort((a, b) => b.caughtAt - a.caughtAt);
     }
-    return list;
-  }, [owned, sortKey]);
+  }, [owned, sortKey, query, favoritesOnly]);
 
-  const selected = selectedUid ? owned.find(p => p.uid === selectedUid) : undefined;
+  const selected = selectedUid ? owned.find((pokemon) => pokemon.uid === selectedUid) : undefined;
   const selectedSpecies = selected ? getSpecies(selected.speciesId) : undefined;
 
-  const handleEvolve = async (toSpeciesId: number, candyCost: number) => {
-    if (!selected) return;
-    await onEvolve(selected.uid, toSpeciesId, candyCost);
-    // The uid stays the same after evolution, so the detail view just re-renders with the new species.
-  };
-
-  const handlePowerUp = async () => {
-    if (!selected) return;
-    await onPowerUp(selected.uid);
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
-      className="absolute inset-0 z-[700] bg-[#f8fafc] flex flex-col font-sans overflow-hidden"
-    >
-      {/* Unified Pokémon GO header */}
-      <ScreenHeader title="POKÉMON" rightLabel={`${owned.length}/${STORAGE_CAP}`} />
+    <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} className="absolute inset-0 z-[700] flex flex-col overflow-hidden bg-[linear-gradient(180deg,#f8fbfa_0%,#edf5f3_100%)] text-[#315d61]">
+      <header className="shrink-0 border-b border-[#dce9e6] bg-white/94 px-4 pb-3 pt-[max(18px,env(safe-area-inset-top))] shadow-sm backdrop-blur">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#7c9f9a]">Collection</p>
+            <h1 className="text-2xl font-black tracking-[-0.04em] text-[#315d61]">Pokémon</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setSearchOpen(!searchOpen)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#edf5f2] text-[#4b807b] ring-1 ring-[#ddeae6] active:scale-95" aria-label="Search Pokémon">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+            </button>
+            <div className="rounded-full bg-[#edf5f2] px-3 py-2 text-sm font-black ring-1 ring-[#ddeae6]">{owned.length} / {STORAGE_CAP}</div>
+          </div>
+        </div>
+        <AnimatePresence initial={false}>
+          {searchOpen && (
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+              <div className="mt-3 flex h-11 items-center gap-2 rounded-full bg-[#edf5f2] px-4 ring-1 ring-[#dce9e5]">
+                <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-[#71928e]" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+                <input value={query} onChange={(event) => setQuery(event.target.value)} autoFocus placeholder="Search name, number, or CP" className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[#315d61] outline-none placeholder:text-[#92a8a4]" />
+                {query && <button type="button" onClick={() => setQuery('')} className="text-[#75928f]"><svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg></button>}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
 
-      {/* Sort Bar */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-white border-b-2 border-slate-200 shadow-sm relative z-10 shrink-0 overflow-x-auto">
-        <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider shrink-0">Sort</span>
-        {SORTS.map(s => (
-          <button
-            key={s.key}
-            onClick={() => setSortKey(s.key)}
-            className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide whitespace-nowrap transition-colors ${
-              sortKey === s.key ? 'bg-[#1b6e7e] text-white shadow-sm' : 'bg-slate-100 text-slate-500'
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
+      <div className="shrink-0 border-b border-[#dce9e6] bg-white/88 px-3 py-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          {([
+            ['recent', 'Recent'],
+            ['cp', 'CP'],
+            ['name', 'Name'],
+            ['number', 'Number'],
+          ] as [SortKey, string][]).map(([key, label]) => (
+            <button key={key} type="button" onClick={() => setSortKey(key)} className={`rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.1em] ${sortKey === key ? 'bg-[#2e9da1] text-white shadow-sm' : 'bg-[#edf4f1] text-[#648681]'}`}>{label}</button>
+          ))}
+          <button type="button" onClick={() => setFavoritesOnly(!favoritesOnly)} className={`flex items-center gap-1 rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.1em] ${favoritesOnly ? 'bg-[#efb23e] text-white shadow-sm' : 'bg-[#edf4f1] text-[#648681]'}`}><StarIcon filled={favoritesOnly} className="h-4 w-4" /> Favorites</button>
+        </div>
       </div>
 
-      {/* Grid */}
-      <div className="flex-1 overflow-y-auto px-2 pt-2 pb-24">
-        {owned.length === 0 ? (
-          <div className="py-16 text-center text-slate-400 font-medium px-8">
-            You haven't caught any Pokémon yet. Tap one on the map to start your collection!
-          </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-28 pt-3">
+        {sorted.length === 0 ? (
+          <div className="mx-auto mt-14 max-w-xs text-center"><div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white text-[#8da6a1] shadow-sm ring-1 ring-[#e0ebe8]"><PokemonIcon /></div><h2 className="mt-4 text-lg font-black">No Pokémon found</h2><p className="mt-2 text-sm leading-6 text-[#78918d]">Catch creatures on the map or change your search and filters.</p></div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
-            {sorted.map(p => {
-              const species = getSpecies(p.speciesId);
+            {sorted.map((pokemon) => {
+              const species = getSpecies(pokemon.speciesId);
               if (!species) return null;
+              const typeColor = TYPE_COLORS[species.types[0]];
               return (
-                <button
-                  key={p.uid}
-                  onClick={() => setSelectedUid(p.uid)}
-                  style={{ background: `linear-gradient(to bottom, ${TYPE_COLORS[species.types[0]]}26 0%, #ffffff 72%)` }}
-                  className="relative aspect-square border border-slate-200 rounded-lg shadow-sm flex flex-col items-center overflow-hidden active:scale-95 transition-transform p-1"
-                >
-                  {p.favorite && (
-                    <StarIcon filled className="absolute top-1 right-1 w-3.5 h-3.5 drop-shadow-sm z-10" />
-                  )}
-                  {/* CP on its own top strip so it never collides with the sprite */}
-                  <span className="text-[11px] font-black text-slate-600 tracking-wide leading-none pt-1 shrink-0">
-                    CP {p.cp}
-                  </span>
-                  <div className="flex-1 min-h-0 w-full flex items-center justify-center">
-                    <PokemonSprite
-                      id={species.id}
-                      name={species.name}
-                      className="max-h-full max-w-full object-contain drop-shadow-md"
-                    />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-600 truncate w-full text-center leading-tight pb-0.5 shrink-0">
-                    {species.name}
-                  </span>
-                </button>
+                <motion.button key={pokemon.uid} type="button" whileTap={{ scale: 0.95 }} onClick={() => setSelectedUid(pokemon.uid)} className="relative flex aspect-[.92] flex-col items-center overflow-hidden rounded-[18px] border border-white bg-white/94 p-1.5 shadow-[0_4px_12px_rgba(47,91,83,.09)] ring-1 ring-[#e1ece9]">
+                  <div className="absolute inset-x-0 top-0 h-[58%] opacity-18" style={{ background: `linear-gradient(180deg, ${typeColor}, transparent)` }} />
+                  {pokemon.favorite && <StarIcon filled className="absolute right-1.5 top-1.5 z-10 h-4 w-4 drop-shadow-sm" />}
+                  <p className="relative z-10 text-[10px] font-black uppercase tracking-wide text-[#587a78]">CP {pokemon.cp}</p>
+                  <div className="relative z-10 flex min-h-0 w-full flex-1 items-center justify-center"><PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain drop-shadow-md" /></div>
+                  <p className="relative z-10 w-full truncate text-center text-[11px] font-black text-[#315d61]">{species.name}</p>
+                  <div className="relative z-10 mt-1 h-1.5 w-[78%] overflow-hidden rounded-full bg-[#e2ece9]"><div className="h-full rounded-full" style={{ width: `${Math.min(100, pokemon.level * 2.5)}%`, background: typeColor }} /></div>
+                </motion.button>
               );
             })}
           </div>
         )}
       </div>
 
-      {/* Close Button */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={onClose}
-          className="w-[72px] h-[72px] flex items-center justify-center bg-transparent border-none"
-        >
-          <img
-            src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_close_normal.png"
-            alt="Close"
-            className="w-full h-full object-contain drop-shadow-lg"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-          />
-        </motion.button>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-[#edf5f3] via-[#edf5f3]/95 to-transparent pb-[max(18px,env(safe-area-inset-bottom))] pt-10">
+        <motion.button type="button" whileTap={{ scale: 0.9 }} onClick={onClose} className="pointer-events-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-white/95 text-[#39716f] shadow-[0_8px_22px_rgba(47,91,83,.2)] ring-1 ring-[#cfe3dc]" aria-label="Close storage"><svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg></motion.button>
       </div>
 
-      {/* Individual Detail View */}
       <AnimatePresence>
         {selected && selectedSpecies && (
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'tween', duration: 0.2 }}
-            className="absolute inset-0 bg-white z-50 flex flex-col font-sans overflow-y-auto"
-          >
-            <div
-              className="absolute inset-0 opacity-20 z-0"
-              style={{ background: `linear-gradient(to bottom, ${TYPE_COLORS[selectedSpecies.types[0]]} 0%, white 50%)` }}
-            />
-
-            {/* Top Nav */}
-            <div className="w-full flex justify-between items-center p-4 z-10 pt-12">
-              <button onClick={() => setSelectedUid(null)} className="w-10 h-10 flex items-center justify-center text-slate-500 active:bg-slate-100 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-              </button>
-              <span className="text-slate-400 font-black text-sm tracking-widest">#{selectedSpecies.id.toString().padStart(3, '0')}</span>
-              <button
-                onClick={() => onToggleFavorite(selected.uid)}
-                className="w-10 h-10 flex items-center justify-center active:bg-slate-100 rounded-full"
-                aria-label={selected.favorite ? 'Remove favorite' : 'Mark as favorite'}
-              >
-                <StarIcon filled={!!selected.favorite} className="w-7 h-7" />
-              </button>
+          <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'tween', duration: 0.23 }} className="absolute inset-0 z-40 overflow-y-auto bg-white text-[#315d61]">
+            <div className="absolute inset-x-0 top-0 h-[47vh] opacity-30" style={{ background: `linear-gradient(180deg, ${TYPE_COLORS[selectedSpecies.types[0]]} 0%, #dff5ee 55%, white 100%)` }} />
+            <div className="relative z-10 flex items-center justify-between px-4 pt-[max(18px,env(safe-area-inset-top))]">
+              <button type="button" onClick={() => setSelectedUid(null)} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/72 text-[#4f7473] shadow-sm backdrop-blur active:scale-95"><svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="m15 18-6-6 6-6" /></svg></button>
+              <span className="rounded-full bg-white/65 px-3 py-1.5 text-xs font-black tracking-[0.12em] text-[#668481] backdrop-blur">#{selectedSpecies.id.toString().padStart(3, '0')}</span>
+              <button type="button" onClick={() => onToggleFavorite(selected.uid)} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/72 shadow-sm backdrop-blur active:scale-95"><StarIcon filled={!!selected.favorite} className="h-7 w-7" /></button>
             </div>
 
-            {/* CP Badge */}
-            <div className="w-full flex justify-center mt-2 z-10 relative">
-              <div className="bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200 flex items-baseline gap-1">
-                <span className="text-xs font-bold text-slate-500">CP</span>
-                <span className="text-2xl font-black text-slate-800 tracking-tighter">{selected.cp}</span>
-              </div>
-            </div>
-
-            {/* Sprite */}
-            <motion.div
-              animate={{ y: [-5, 5] }}
-              transition={{ repeat: Infinity, duration: 4, repeatType: 'mirror', ease: 'easeInOut' }}
-              className="w-full h-[28vh] flex items-center justify-center relative z-10"
-            >
-              <PokemonSprite
-                id={selectedSpecies.id}
-                name={selectedSpecies.name}
-                variant="artwork"
-                className="w-[65%] h-full object-contain drop-shadow-2xl"
-              />
-            </motion.div>
-
-            {/* Info Sheet */}
-            <div className="w-full flex flex-col items-center z-10 mt-2 flex-1 bg-white pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-[2.5rem] pb-8">
-              <h2 className="text-3xl font-black text-slate-800 tracking-wide uppercase mb-2">{selectedSpecies.name}</h2>
-
-              {/* HP bar (real game shows current/max HP under the name) */}
-              {(() => {
-                const hp = calculateHP(selectedSpecies.baseStats.stamina, selected.level, selected.ivs.stamina);
-                return (
-                  <div className="w-full px-12 flex flex-col items-center mb-3">
-                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#5fd35f] rounded-full" style={{ width: '100%' }} />
-                    </div>
-                    <span className="text-slate-500 font-bold text-sm mt-1.5">{hp} / {hp} HP</span>
-                  </div>
-                );
-              })()}
-
-              <div className="text-slate-500 font-bold text-sm mb-2">
-                Level {selected.level} &middot; IV {ivPercent(selected.ivs)}%
+            <div className="relative z-10 mt-3 flex flex-col items-center">
+              <div className="relative flex h-52 w-full items-center justify-center">
+                <svg className="absolute top-2 h-32 w-72 opacity-65" viewBox="0 0 280 140"><path d="M20 130 A120 120 0 0 1 260 130" fill="none" stroke="white" strokeWidth="4" /><circle cx="140" cy="10" r="5" fill="white" /></svg>
+                <div className="absolute top-5 rounded-full bg-white/75 px-4 py-1.5 shadow-sm backdrop-blur"><span className="text-xs font-black text-[#718986]">CP </span><span className="text-2xl font-black tracking-tight text-[#315d61]">{selected.cp}</span></div>
+                <motion.div animate={{ y: [-4, 5, -4] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} className="mt-12 h-40 w-56"><PokemonSprite id={selectedSpecies.id} name={selectedSpecies.name} variant="artwork" className="h-full w-full object-contain drop-shadow-[0_16px_18px_rgba(35,73,72,.22)]" /></motion.div>
               </div>
 
-              {/* Appraisal stars (real game rates a Pokémon's IVs out of 3 stars) */}
-              {(() => {
-                const appraisal = getAppraisal(ivPercent(selected.ivs));
-                return (
-                  <div className="flex items-center gap-1 mb-4">
-                    {[0, 1, 2].map(i => (
-                      <svg key={i} viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
-                        <path
-                          d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.6 5.9 20.4l1.5-6.8L2.2 9l6.9-.7z"
-                          fill={i < appraisal.stars ? '#f6a821' : '#e2e8f0'}
-                          stroke={i < appraisal.stars ? '#e08a10' : '#cbd5e1'}
-                          strokeWidth="0.6"
-                        />
-                      </svg>
-                    ))}
-                    <span className="ml-1 text-slate-500 font-bold text-xs uppercase tracking-wider">{appraisal.label}</span>
-                  </div>
-                );
-              })()}
+              <section className="w-full rounded-t-[34px] bg-white px-5 pb-[max(30px,env(safe-area-inset-bottom))] pt-6 shadow-[0_-10px_28px_rgba(35,73,72,.08)]">
+                <div className="text-center"><h2 className="text-3xl font-black tracking-[-0.04em] text-[#315d61]">{selectedSpecies.name}</h2><p className="mt-1 text-xs font-bold uppercase tracking-[0.13em] text-[#87a09c]">Level {selected.level} · IV {ivPercent(selected.ivs)}%</p></div>
 
-              {/* IV breakdown */}
-              <div className="w-full px-8 flex justify-center gap-8 mb-6 text-center">
-                <div className="flex flex-col items-center">
-                  <span className="text-lg font-black text-slate-800">{selected.ivs.attack}/15</span>
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider">ATTACK</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-lg font-black text-slate-800">{selected.ivs.defense}/15</span>
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider">DEFENSE</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-lg font-black text-slate-800">{selected.ivs.stamina}/15</span>
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider">STAMINA</span>
-                </div>
-              </div>
+                {(() => {
+                  const hp = calculateHP(selectedSpecies.baseStats.stamina, selected.level, selected.ivs.stamina);
+                  return <div className="mx-auto mt-4 max-w-sm"><div className="h-2 overflow-hidden rounded-full bg-[#dfeae7]"><div className="h-full w-full rounded-full bg-gradient-to-r from-[#65d46f] to-[#3daf70]" /></div><p className="mt-1.5 text-center text-xs font-black text-[#718986]">{hp} / {hp} HP</p></div>;
+                })()}
 
-              {/* Weight / Types / Height */}
-              <div className="w-full px-8 flex justify-between items-center mb-6">
-                <div className="flex flex-col items-center flex-1 border-r border-slate-200">
-                  <span className="text-lg font-black text-slate-800">{selectedSpecies.weightKg} <span className="text-xs">kg</span></span>
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">WEIGHT</span>
+                <div className="mt-5 grid grid-cols-3 divide-x divide-[#e3ece9] rounded-2xl bg-[#f5f9f7] py-4 ring-1 ring-[#e5efec]">
+                  <div className="text-center"><p className="text-base font-black">{selectedSpecies.weightKg} kg</p><p className="mt-1 text-[9px] font-black uppercase tracking-wider text-[#8aa09d]">Weight</p></div>
+                  <div className="flex flex-col items-center gap-1"><div className="flex gap-1">{selectedSpecies.types.map((type) => <span key={type} className="flex h-7 w-7 items-center justify-center rounded-full shadow-sm" style={{ background: TYPE_COLORS[type] }}><img src={getTypeIcon(type)} alt={type} className="h-4 w-4 object-contain" onError={(event) => { event.currentTarget.style.display = 'none'; }} /></span>)}</div><p className="text-[9px] font-black uppercase tracking-wider text-[#8aa09d]">Type</p></div>
+                  <div className="text-center"><p className="text-base font-black">{selectedSpecies.heightM} m</p><p className="mt-1 text-[9px] font-black uppercase tracking-wider text-[#8aa09d]">Height</p></div>
                 </div>
-                <div className="flex flex-col items-center flex-1 gap-1">
-                  <div className="flex gap-1.5 justify-center flex-wrap">
-                    {selectedSpecies.types.map(t => (
-                      <div key={t} className="flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full text-white text-[10px] font-bold uppercase shadow-sm" style={{ backgroundColor: TYPE_COLORS[t] }}>
-                        <img src={getTypeIcon(t)} alt={t} className="w-4 h-4 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                        {t}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">TYPE</span>
-                </div>
-                <div className="flex flex-col items-center flex-1 border-l border-slate-200">
-                  <span className="text-lg font-black text-slate-800">{selectedSpecies.heightM} <span className="text-xs">m</span></span>
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider mt-1">HEIGHT</span>
-                </div>
-              </div>
 
-              {/* Moves (Fast + Charged), like the real Pokémon detail screen */}
-              {(() => {
-                const { fast, charged } = getMoveset(selectedSpecies.types);
-                return (
-                  <div className="w-full px-8 mb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex-1 h-px bg-slate-200" />
-                      <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Moves</span>
-                      <div className="flex-1 h-px bg-slate-200" />
-                    </div>
-                    {[fast, charged].map((move, i) => (
-                      <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: TYPE_COLORS[move.type] }}>
-                            <img src={getTypeIcon(move.type)} alt={move.type} className="w-4 h-4 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                          </div>
-                          <span className="font-bold text-slate-700 text-sm">{move.name}</span>
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{i === 0 ? 'Fast' : 'Charged'}</span>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
+                {(() => {
+                  const appraisal = getAppraisal(ivPercent(selected.ivs));
+                  return <div className="mt-4 rounded-2xl bg-[#f7faf9] p-4 ring-1 ring-[#e6efec]"><div className="flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8aa09d]">Appraisal</p><p className="text-sm font-black">{appraisal.label}</p></div><div className="flex gap-0.5">{[0, 1, 2].map((index) => <StarIcon key={index} filled={index < appraisal.stars} className="h-5 w-5" />)}</div></div><div className="mt-4 grid grid-cols-3 gap-2">{[['Attack', selected.ivs.attack], ['Defense', selected.ivs.defense], ['HP', selected.ivs.stamina]].map(([label, value]) => <div key={label as string}><div className="mb-1 flex justify-between text-[9px] font-black uppercase text-[#7f9994]"><span>{label}</span><span>{value}/15</span></div><div className="h-1.5 overflow-hidden rounded-full bg-[#dfeae7]"><div className="h-full rounded-full bg-[#ef9a52]" style={{ width: `${(Number(value) / 15) * 100}%` }} /></div></div>)}</div></div>;
+                })()}
 
-              {/* Stardust + Candy resources */}
-              <div className="w-full px-8 flex justify-center gap-10 mb-4 items-start">
-                <div className="flex flex-col items-center gap-1">
-                  <div className="flex items-center gap-2">
-                    <StardustIcon className="w-7 h-7 drop-shadow-sm" />
-                    <span className="font-black text-slate-800 text-xl">{stardust.toLocaleString()}</span>
-                  </div>
-                  <span className="text-slate-400 font-bold text-[10px] tracking-wider uppercase">Stardust</span>
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-[#f4f9f7] p-3 ring-1 ring-[#e4eeeb]"><div className="flex items-center gap-2"><StardustIcon className="h-7 w-7" /><div><p className="text-lg font-black">{stardust.toLocaleString()}</p><p className="text-[9px] font-black uppercase tracking-wider text-[#8aa09d]">Stardust</p></div></div></div>
+                  <div className="rounded-2xl bg-[#f4f9f7] p-3 ring-1 ring-[#e4eeeb]"><div className="flex items-center gap-2"><img src={CANDY_ICON} alt="Candy" className="h-7 w-7" onError={(event) => { event.currentTarget.style.display = 'none'; }} /><div><p className="text-lg font-black">{candies[selectedSpecies.family] || 0}</p><p className="truncate text-[9px] font-black uppercase tracking-wider text-[#8aa09d]">Candy</p></div></div></div>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                  <div className="flex items-center gap-2">
-                    <img src={CANDY_ICON} alt="Candy" className="w-7 h-7 drop-shadow-sm" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                    <span className="font-black text-slate-800 text-xl">{candies[selectedSpecies.family] || 0}</span>
-                  </div>
-                  <span className="text-slate-400 font-bold text-[10px] tracking-wider uppercase">{selectedSpecies.family} Candy</span>
-                </div>
-              </div>
 
-              {/* Power Up button */}
-              {(() => {
-                if (selected.level >= MAX_LEVEL) {
-                  return <div className="text-slate-400 font-bold text-xs mb-6 uppercase tracking-wider">Max level reached</div>;
-                }
-                const cost = powerUpCost(selected.level);
-                const canPowerUp = stardust >= cost.stardust && (candies[selectedSpecies.family] || 0) >= cost.candy;
-                return (
-                  <button
-                    onClick={handlePowerUp}
-                    disabled={!canPowerUp}
-                    className="w-[80%] rounded-full py-3 mb-3 flex justify-between items-center px-6 active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
-                    style={{
-                      background: 'linear-gradient(to bottom, #f6c243 0%, #e0a92c 100%)',
-                      boxShadow: '0 4px 10px rgba(224,169,44,0.4), inset 0 2px 4px rgba(255,255,255,0.4)',
-                      border: '2px solid #c99526',
-                    }}
-                  >
-                    <span className="text-[#5a3d00] font-black tracking-widest text-base drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]">POWER UP</span>
-                    <div className="flex items-center gap-3 text-[#5a3d00] font-black text-sm">
-                      <span className="flex items-center gap-1"><StardustIcon className="w-4 h-4" />{cost.stardust.toLocaleString()}</span>
-                      <span className="flex items-center gap-1"><img src={CANDY_ICON} alt="" className="w-4 h-4" onError={(e) => { e.currentTarget.style.display = 'none'; }} />{cost.candy}</span>
-                    </div>
-                  </button>
-                );
-              })()}
+                {(() => {
+                  const { fast, charged } = getMoveset(selectedSpecies.types);
+                  return <div className="mt-5 rounded-2xl bg-[#f7faf9] p-4 ring-1 ring-[#e6efec]"><p className="mb-2 text-[10px] font-black uppercase tracking-[0.15em] text-[#8aa09d]">Moves</p>{[fast, charged].map((move, index) => <div key={`${move.name}-${index}`} className="flex items-center justify-between border-t border-[#e3ece9] py-3 first:border-t-0"><div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-full" style={{ background: TYPE_COLORS[move.type] }}><img src={getTypeIcon(move.type)} alt={move.type} className="h-4 w-4" onError={(event) => { event.currentTarget.style.display = 'none'; }} /></span><p className="text-sm font-black">{move.name}</p></div><span className="text-[9px] font-black uppercase tracking-wider text-[#91a6a2]">{index === 0 ? 'Fast' : 'Charged'}</span></div>)}</div>;
+                })()}
 
-              {/* Evolve buttons */}
-              {selectedSpecies.evolutions.length > 0 && (
-                <div className="w-full px-8 flex flex-col gap-3">
-                  {selectedSpecies.evolutions.map(evo => {
-                    const target = getSpecies(evo.toId);
-                    if (!target) return null;
-                    const candyCount = candies[selectedSpecies.family] || 0;
-                    const canEvolve = candyCount >= evo.candyCost;
-                    return (
-                      <button
-                        key={evo.toId}
-                        onClick={() => handleEvolve(evo.toId, evo.candyCost)}
-                        disabled={!canEvolve}
-                        className="w-full rounded-full py-3 flex justify-between items-center px-6 active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
-                        style={{
-                          background: 'linear-gradient(to bottom, #26C281 0%, #1DA66C 100%)',
-                          boxShadow: '0 4px 10px rgba(38,194,129,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
-                          border: '2px solid #148A58',
-                        }}
-                      >
-                        <span className="text-white font-black tracking-widest text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-sans">
-                          EVOLVE TO {target.name.toUpperCase()}
-                          {evo.item && <span className="block text-[10px] font-bold normal-case opacity-80">Requires {evo.item}</span>}
-                        </span>
-                        <div className="flex items-center gap-1 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-lg">
-                          <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                          <span>{evo.candyCost}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                {selected.level >= MAX_LEVEL ? <p className="mt-5 text-center text-xs font-black uppercase tracking-wider text-[#8ba09c]">Maximum level reached</p> : (() => {
+                  const cost = powerUpCost(selected.level);
+                  const canPowerUp = stardust >= cost.stardust && (candies[selectedSpecies.family] || 0) >= cost.candy;
+                  return <button type="button" onClick={() => onPowerUp(selected.uid)} disabled={!canPowerUp} className="mt-5 flex w-full items-center justify-between rounded-full bg-gradient-to-r from-[#f4c34c] to-[#e5a62f] px-5 py-3.5 text-[#624a15] shadow-lg disabled:opacity-45"><span className="text-sm font-black uppercase tracking-[0.13em]">Power up</span><span className="flex items-center gap-3 text-xs font-black"><span className="flex items-center gap-1"><StardustIcon className="h-4 w-4" />{cost.stardust}</span><span className="flex items-center gap-1"><img src={CANDY_ICON} alt="" className="h-4 w-4" />{cost.candy}</span></span></button>;
+                })()}
+
+                {selectedSpecies.evolutions.map((evolution) => {
+                  const target = getSpecies(evolution.toId);
+                  if (!target) return null;
+                  const canEvolve = (candies[selectedSpecies.family] || 0) >= evolution.candyCost;
+                  return <button key={`${evolution.toId}-${evolution.candyCost}`} type="button" onClick={() => onEvolve(selected.uid, evolution.toId, evolution.candyCost)} disabled={!canEvolve} className="mt-3 flex w-full items-center justify-between rounded-full bg-gradient-to-r from-[#55c995] to-[#28a6a5] px-5 py-3.5 text-white shadow-lg disabled:opacity-45"><span className="text-sm font-black uppercase tracking-[0.13em]">Evolve to {target.name}</span><span className="flex items-center gap-1 text-sm font-black"><img src={CANDY_ICON} alt="" className="h-5 w-5" />{evolution.candyCost}</span></button>;
+                })}
+              </section>
             </div>
           </motion.div>
         )}
@@ -418,5 +210,9 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
     </motion.div>
   );
 };
+
+const PokemonIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M7 3 10 9M17 3l-3 6" /><path d="M6 13a6 6 0 0 1 12 0c0 4-3 7-6 7s-6-3-6-7Z" /><circle cx="9.5" cy="13.5" r=".8" fill="currentColor" /><circle cx="14.5" cy="13.5" r=".8" fill="currentColor" /></svg>
+);
 
 export default PokemonStorageScreen;
