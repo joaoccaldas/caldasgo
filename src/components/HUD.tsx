@@ -51,8 +51,12 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
       {/* Top Right: Weather boost badge (authentic PoGo) */}
       <div className="absolute top-12 right-4 z-[400] flex flex-col gap-3 pointer-events-auto items-end">
         {/* Weather */}
-        <div className="w-12 h-12 bg-[#2dd4bf]/90 backdrop-blur rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.4)] flex items-center justify-center border border-white/50 cursor-pointer hover:bg-[#2dd4bf] transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/><circle cx="12" cy="12" r="4"/></svg>
+        <div className="w-12 h-12 bg-white/30 backdrop-blur rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.4)] flex items-center justify-center border border-white/50 cursor-pointer hover:bg-white/40 transition-colors overflow-hidden">
+          <img
+            src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Weather/weatherIcon_large_clearDay.png"
+            alt="Clear weather"
+            className="w-[85%] h-[85%] object-contain"
+          />
         </div>
       </div>
 

@@ -99,22 +99,21 @@ const MapScreen: React.FC = () => {
           {/* Capture map clicks for mock walking */}
           <MapClickCapturer onClick={handleMapClick} />
 
-          {/* Render PokéStops as the iconic blue spinning discs */}
+          {/* Render PokéStops using the real Pokémon GO map-pin artwork */}
           {pokestops.map((stop: Pokestop) => {
             const spinnable = isSpinable(stop);
             const stopIcon = L.divIcon({
               html: `
-                <div class="relative flex flex-col items-center -ml-5 -mt-10 cursor-pointer">
-                  <div class="w-10 h-10 rounded-full ${spinnable ? 'bg-[#48b6e0]' : 'bg-[#8a6fc4]'} border-[3px] border-white shadow-[0_4px_8px_rgba(0,0,0,0.4)] flex items-center justify-center">
-                    <div class="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center">
-                      <div class="w-2.5 h-2.5 rounded-full ${spinnable ? 'bg-[#48b6e0]' : 'bg-[#8a6fc4]'}"></div>
-                    </div>
-                  </div>
-                  <div class="w-1.5 h-5 ${spinnable ? 'bg-[#3a9ec4]' : 'bg-[#74599e]'}"></div>
+                <div class="relative flex flex-col items-center -ml-6 -mt-[60px] cursor-pointer hover:scale-105 transition-transform">
+                  <img
+                    src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Pokestops%20and%20Gyms/pokestop_near.png"
+                    alt="PokéStop"
+                    class="w-12 h-[60px] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)] ${spinnable ? '' : 'grayscale opacity-60'}"
+                  />
                 </div>
               `,
               className: 'custom-pokestop-icon',
-              iconSize: [40, 60],
+              iconSize: [48, 60],
             });
             return (
               <Marker
