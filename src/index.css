@@ -4,12 +4,27 @@
   --font-sans: 'Lato', sans-serif;
   --font-condensed: 'Roboto Condensed', sans-serif;
 
-  /* Authentic Pokémon GO palette — unified teal/navy identity. */
-  --color-pogo-navy: #0b2a3a;
-  --color-pogo-teal: #1b6e7e;
-  --color-pogo-teal-dark: #12515e;
-  --color-pogo-cyan: #2dd4bf;
-  --color-pogo-gold: #f6c243;
+  --color-pogo-navy: #123b46;
+  --color-pogo-teal: #2b7b7d;
+  --color-pogo-teal-dark: #1f5f65;
+  --color-pogo-cyan: #45c6bf;
+  --color-pogo-gold: #f4c64d;
+  --color-pogo-mint: #dff2df;
+  --color-pogo-surface: #f8fcf8;
+}
+
+:root {
+  --pogo-ink: #24575d;
+  --pogo-ink-muted: #789391;
+  --pogo-line: rgba(73, 126, 119, 0.18);
+  --pogo-surface: rgba(255, 255, 255, 0.92);
+  --pogo-surface-soft: rgba(255, 255, 255, 0.72);
+  --pogo-shadow-sm: 0 4px 12px rgba(39, 85, 78, 0.14);
+  --pogo-shadow-md: 0 9px 24px rgba(35, 80, 75, 0.2);
+  --pogo-shadow-lg: 0 22px 56px rgba(25, 66, 65, 0.27);
+  --pogo-radius-card: 24px;
+  --pogo-radius-sheet: 30px;
+  --pogo-tap: 48px;
 }
 
 @layer utilities {
@@ -17,18 +32,52 @@
     display: none;
   }
   .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
+
+  .pogo-screen-enter {
+    animation: pogo-screen-enter 240ms cubic-bezier(.2,.76,.3,1) both;
+  }
+
+  .pogo-soft-noise {
+    background-image:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,.42) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 78% 64%, rgba(40,102,90,.08) 0 1px, transparent 1.5px);
+    background-size: 32px 32px, 44px 44px;
+  }
+}
+
+@keyframes pogo-screen-enter {
+  from { opacity: 0; transform: translateY(14px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Prevent bouncing on mobile */
+  overflow: hidden;
   touch-action: pan-x pan-y;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+  background: #123b46;
+}
+
+button, input {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
 }
