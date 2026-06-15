@@ -28,10 +28,11 @@ export interface PokemonSpecies {
 }
 
 /**
- * Curated roster of 263 Pokémon spanning Generations 1-9, including every Legendary,
+ * Curated roster of 266 Pokémon spanning Generations 1-9, including every Legendary,
  * Mythical, Ultra Beast and Paradox Pokémon through June 2026 (Gen 9 / The Indigo Disk),
- * plus the community-recognized hardest-to-catch species (Mewtwo, Mew, Lugia, Palkia,
- * the Lake Guardian trio, Sigilyph, Larvesta and the Salandit line).
+ * plus the community-recognized rarest and hardest-to-catch species (Mewtwo, Mew, Lugia,
+ * Palkia, the Lake Guardian trio, Sigilyph, Larvesta and Salandit lines, Kecleon, and
+ * the Rockruff/Lycanroc line).
  * Base stats, types, families and evolution/candy costs are sourced from the real
  * Pokémon GO GAME_MASTER data.
  */
@@ -275,6 +276,11 @@ export const POKEMON_DATABASE: PokemonSpecies[] = [
     evolutions: [] },
   { id: 350, name: 'Milotic', types: ['water'], generation: 3, rarity: 'rare', family: 'FEEBAS', candyToEvolve: 0,
     baseStats: { attack: 192, defense: 219, stamina: 216 }, heightM: 6.2, weightKg: 162,
+    evolutions: [] },
+  // Kecleon only spawns by interacting with a Pokestop - it's never a regular
+  // wild spawn, making it one of the rarer non-Legendary encounters.
+  { id: 352, name: 'Kecleon', types: ['normal'], generation: 3, rarity: 'rare', family: 'KECLEON', candyToEvolve: 0,
+    baseStats: { attack: 116, defense: 116, stamina: 173 }, heightM: 1, weightKg: 22,
     evolutions: [] },
   { id: 359, name: 'Absol', types: ['dark'], generation: 3, rarity: 'rare', family: 'ABSOL', candyToEvolve: 0,
     baseStats: { attack: 246, defense: 120, stamina: 163 }, heightM: 1.2, weightKg: 47,
@@ -601,6 +607,15 @@ export const POKEMON_DATABASE: PokemonSpecies[] = [
   { id: 734, name: 'Yungoos', types: ['normal'], generation: 7, rarity: 'common', family: 'YUNGOOS', candyToEvolve: 0,
     baseStats: { attack: 122, defense: 56, stamina: 134 }, heightM: 0.4, weightKg: 6,
     evolutions: [] },
+  // Rockruff has a very low wild spawn rate, and its Dusk Form evolution
+  // (a Lycanroc variant exclusive to a 2018 community day) is one of the
+  // rarest forms in the game.
+  { id: 744, name: 'Rockruff', types: ['rock'], generation: 7, rarity: 'rare', family: 'ROCKRUFF', candyToEvolve: 25,
+    baseStats: { attack: 121, defense: 91, stamina: 137 }, heightM: 0.5, weightKg: 9.2,
+    evolutions: [{ toId: 745, candyCost: 25 }] },
+  { id: 745, name: 'Lycanroc', types: ['rock'], generation: 7, rarity: 'rare', family: 'ROCKRUFF', candyToEvolve: 0,
+    baseStats: { attack: 218, defense: 144, stamina: 155 }, heightM: 0.8, weightKg: 25,
+    evolutions: [], evolvesFromId: 744 },
   { id: 748, name: 'Toxapex', types: ['poison', 'water'], generation: 7, rarity: 'rare', family: 'MAREANIE', candyToEvolve: 0,
     baseStats: { attack: 114, defense: 273, stamina: 137 }, heightM: 0.7, weightKg: 14.5,
     evolutions: [] },
@@ -883,6 +898,19 @@ export const RARITY_SPAWN_WEIGHT: Record<Rarity, number> = {
   legendary: 1.2,
   mythical: 0.4,
 };
+
+/** Region medals shown in the Pokédex region picker, mapped to their generation. */
+export const REGIONS: { generation: number; name: string }[] = [
+  { generation: 1, name: 'Kanto' },
+  { generation: 2, name: 'Johto' },
+  { generation: 3, name: 'Hoenn' },
+  { generation: 4, name: 'Sinnoh' },
+  { generation: 5, name: 'Unova' },
+  { generation: 6, name: 'Kalos' },
+  { generation: 7, name: 'Alola' },
+  { generation: 8, name: 'Galar' },
+  { generation: 9, name: 'Paldea' },
+];
 
 export const TYPE_COLORS: Record<PokemonType, string> = {
   normal: '#A8A77A', fire: '#EE8130', water: '#6390F0', electric: '#F7D02C',

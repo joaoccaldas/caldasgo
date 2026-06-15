@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   POKEMON_DATABASE,
+  REGIONS,
   getSpecies,
   getTypeIcon,
   isShowcaseRarity,
@@ -39,6 +40,8 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [rarityFilter, setRarityFilter] = useState<RarityFilter>('all');
+  const [regionFilter, setRegionFilter] = useState<number | 'all'>('all');
+  const [isPickingRegion, setIsPickingRegion] = useState(false);
 
   const ownedBySpecies = useMemo(() => {
     const map = new Map<number, OwnedPokemon[]>();
@@ -58,6 +61,10 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
   const filteredGrid = useMemo(() => {
     let entries = POKEMON_DATABASE;
 
+    if (regionFilter !== 'all') {
+      entries = entries.filter(species => species.generation === regionFilter);
+    }
+
     if (rarityFilter === 'caught') {
       entries = entries.filter(species => ownedBySpecies.has(species.id));
     } else if (rarityFilter === 'legendary' || rarityFilter === 'mythical') {
@@ -75,7 +82,9 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
     }
 
     return entries;
-  }, [searchQuery, rarityFilter, ownedBySpecies]);
+  }, [searchQuery, rarityFilter, regionFilter, ownedBySpecies]);
+
+  const regionLabel = regionFilter === 'all' ? 'NATIONAL' : REGIONS.find(r => r.generation === regionFilter)?.name.toUpperCase() ?? 'NATIONAL';
 
   const selectedSpecies = selectedSpeciesId !== null ? getSpecies(selectedSpeciesId) : undefined;
   const selectedOwned = selectedSpeciesId !== null ? ownedBySpecies.get(selectedSpeciesId) : undefined;
@@ -131,7 +140,10 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
 
       {/* Top bar: region label, caught/total pill, Pokédex icon */}
       <div className="shrink-0 px-4 pt-12 pb-2 flex items-center justify-between relative z-10">
-        <span className="text-[#1f6f6b] font-black tracking-wide text-lg">NATIONAL</span>
+        <button onClick={() => setIsPickingRegion(true)} className="text-[#1f6f6b] font-black tracking-wide text-lg flex items-center gap-1">
+          {regionLabel}
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1f6f6b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
         <div className="bg-[#2a9ab5] px-5 py-1.5 rounded-full shadow-md">
           <span className="text-white font-black text-lg tracking-wide">{caughtSpeciesCount} / {POKEMON_DATABASE.length}</span>
         </div>
@@ -160,9 +172,10 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                   <span className="absolute top-1 left-1.5 bg-[#2a7a8c] text-white font-bold text-[9px] px-1.5 rounded-full">x{caught.length}</span>
                 )}
 
-                <div className="flex-1 w-full flex items-center justify-center p-2">
+                <div className="flex-1 w-full flex items-center justify-center p-2 relative">
+                  {clickable && <div className="absolute bottom-1.5 w-9 h-2 bg-black/10 rounded-[50%] blur-[1px]" />}
                   {clickable ? (
-                    <PokemonSprite id={species.id} name={species.name} shiny={shiny} className="max-h-full max-w-full object-contain drop-shadow" />
+                    <PokemonSprite id={species.id} name={species.name} shiny={shiny} className="max-h-full max-w-full object-contain drop-shadow relative z-10" />
                   ) : seenOnly ? (
                     <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(0.45)]" />
                   ) : (
@@ -213,10 +226,62 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a7a8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </motion.button>
-        <button className="w-12 h-12 rounded-full bg-white shadow-md flex flex-col items-center justify-center">
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#2a7a8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+        <button onClick={() => setIsPickingRegion(true)} className="w-12 h-12 rounded-full bg-white shadow-md flex flex-col items-center justify-center">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#2a7a8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 15v3a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-3"/></svg>
         </button>
       </div>
+
+      {/* Region Picker Sheet */}
+      <AnimatePresence>
+        {isPickingRegion && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[800] bg-black/40 flex items-end"
+            onClick={() => setIsPickingRegion(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'tween', duration: 0.25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full bg-white rounded-t-3xl max-h-[70vh] overflow-y-auto pb-8"
+            >
+              <div className="sticky top-0 bg-white pt-4 pb-2 px-5 flex items-center justify-between border-b border-slate-100">
+                <h3 className="text-lg font-black text-slate-800 tracking-wide">SELECT REGION</h3>
+                <button onClick={() => setIsPickingRegion(false)} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
+              <div className="px-3 pt-2">
+                <button
+                  onClick={() => { setRegionFilter('all'); setIsPickingRegion(false); }}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl mb-1 transition-colors ${regionFilter === 'all' ? 'bg-[#2a9ab5]/15' : 'active:bg-slate-50'}`}
+                >
+                  <span className="font-bold text-slate-700">National</span>
+                  <span className="text-sm font-bold text-slate-400">{caughtSpeciesCount} / {POKEMON_DATABASE.length}</span>
+                </button>
+                {REGIONS.map(region => {
+                  const regionSpecies = POKEMON_DATABASE.filter(s => s.generation === region.generation);
+                  const caughtInRegion = regionSpecies.filter(s => ownedBySpecies.has(s.id)).length;
+                  return (
+                    <button
+                      key={region.generation}
+                      onClick={() => { setRegionFilter(region.generation); setIsPickingRegion(false); }}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl mb-1 transition-colors ${regionFilter === region.generation ? 'bg-[#2a9ab5]/15' : 'active:bg-slate-50'}`}
+                    >
+                      <span className="font-bold text-slate-700">{region.name}</span>
+                      <span className="text-sm font-bold text-slate-400">{caughtInRegion} / {regionSpecies.length}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Authentic Flat Detail View */}
       <AnimatePresence>
