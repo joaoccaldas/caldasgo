@@ -1,26 +1,47 @@
-bmFtZTogRGVwbG95IGN1cnJlbnQgbWFpbiB0byBHaXRIdWIgUGFnZXMKCm9u
-OgogIHB1c2g6CiAgICBicmFuY2hlczogWydtYWluJ10KICB3b3JrZmxvd19k
-aXNwYXRjaDoKCnBlcm1pc3Npb25zOgogIGNvbnRlbnRzOiB3cml0ZQoKY29u
-Y3VycmVuY3k6CiAgZ3JvdXA6IHBhZ2VzLWN1cnJlbnQtbWFpbgogIGNhbmNl
-bC1pbi1wcm9ncmVzczogdHJ1ZQoKam9iczoKICBidWlsZC1hbmQtZGVwbG95
-OgogICAgcnVucy1vbjogdWJ1bnR1LWxhdGVzdAogICAgc3RlcHM6CiAgICAg
-IC0gbmFtZTogQ2hlY2tvdXQgY3VycmVudCBtYWluCiAgICAgICAgdXNlczog
-YWN0aW9ucy9jaGVja291dEB2NAogICAgICAgIHdpdGg6CiAgICAgICAgICBy
-ZWY6IG1haW4KICAgICAgICAgIGZldGNoLWRlcHRoOiAxCgogICAgICAtIG5h
-bWU6IFNldCB1cCBOb2RlCiAgICAgICAgdXNlczogYWN0aW9ucy9zZXR1cC1u
-b2RlQHY0CiAgICAgICAgd2l0aDoKICAgICAgICAgIG5vZGUtdmVyc2lvbjog
-MjAKICAgICAgICAgIGNhY2hlOiBucG0KCiAgICAgIC0gbmFtZTogSW5zdGFs
-bCBsb2NrZWQgZGVwZW5kZW5jaWVzCiAgICAgICAgcnVuOiBucG0gY2kKCiAg
-ICAgIC0gbmFtZTogQnVpbGQgcHJvZHVjdGlvbiBidW5kbGUKICAgICAgICBy
-dW46IG5wbSBydW4gYnVpbGQKCiAgICAgIC0gbmFtZTogV3JpdGUgZGVwbG95
-ZWQgcmV2aXNpb24gbWFya2VycwogICAgICAgIHJ1bjogfAogICAgICAgICAg
-cHJpbnRmICd7ImNvbW1pdCI6IiVzIiwid29ya2Zsb3ciOiJkZXBsb3ktY3Vy
-cmVudC1tYWluIiwiYnVpbHRBdCI6IiVzIn1cbicgIiRHSVRIVUJfU0hBIiAi
-JChkYXRlIC11ICslWS0lbS0lZFQlSDolTTolU1opIiA+IGRpc3QvZGVwbG95
-bWVudC5qc29uCiAgICAgICAgICBjcCBwdWJsaWMvcmVsZWFzZS5qc29uIGRp
-c3QvcmVsZWFzZS5qc29uCgogICAgICAtIG5hbWU6IERlcGxveSB0byBnaC1w
-YWdlcyBicmFuY2gKICAgICAgICB1c2VzOiBwZWFjZWlyaXMvYWN0aW9ucy1n
-aC1wYWdlc0B2MwogICAgICAgIHdpdGg6CiAgICAgICAgICBnaXRodWJfdG9r
-ZW46ICR7eyBzZWNyZXRzLkdJVEhVQl9UT0tFTiB9fQogICAgICAgICAgcHVi
-bGlzaF9kaXI6IC4vZGlzdAogICAgICAgICAgZm9yY2Vfb3JwaGFuOiB0cnVl
-Cg==
+name: Deploy current main to GitHub Pages
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-current-main
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Write deployed revision markers
+        run: |
+          printf '{"commit":"%s","workflow":"deploy-current-main","builtAt":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > dist/deployment.json
+          cp public/release.json dist/release.json
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          force_orphan: true
