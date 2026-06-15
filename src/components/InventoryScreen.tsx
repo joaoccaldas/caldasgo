@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useInventory } from '../hooks/useInventory';
+import ScreenHeader from './ScreenHeader';
 
 interface InventoryScreenProps {
   onClose: () => void;
@@ -28,16 +29,8 @@ const InventoryScreen: React.FC<InventoryScreenProps> = ({ onClose }) => {
       exit={{ opacity: 0, y: 50 }}
       className="absolute inset-0 z-[700] bg-[#f8fafc] flex flex-col font-sans"
     >
-      {/* Top Header */}
-      <div 
-        className="h-20 flex flex-col justify-end items-center pb-2 relative z-10 shrink-0"
-        style={{
-          background: 'linear-gradient(to bottom, #4298ED 0%, #2A79C9 100%)',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2)'
-        }}
-      >
-         <h1 className="text-white font-black tracking-[0.15em] text-xl drop-shadow-md font-sans">ITEMS</h1>
-      </div>
+      {/* Unified Pokémon GO header */}
+      <ScreenHeader title="ITEMS" />
 
       {/* Bag Capacity Bar */}
       <div className="flex justify-center py-3 bg-white border-b-2 border-slate-200 shadow-sm relative z-10 shrink-0">

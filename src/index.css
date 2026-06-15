@@ -3,6 +3,13 @@
 @theme {
   --font-sans: 'Lato', sans-serif;
   --font-condensed: 'Roboto Condensed', sans-serif;
+
+  /* Authentic Pokémon GO palette — unified teal/navy identity. */
+  --color-pogo-navy: #0b2a3a;
+  --color-pogo-teal: #1b6e7e;
+  --color-pogo-teal-dark: #12515e;
+  --color-pogo-cyan: #2dd4bf;
+  --color-pogo-gold: #f6c243;
 }
 
 @layer utilities {

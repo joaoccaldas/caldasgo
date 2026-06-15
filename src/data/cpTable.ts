@@ -46,3 +46,16 @@ export function calculateCP(
 export function maxCP(baseStats: { attack: number; defense: number; stamina: number }): number {
   return calculateCP(baseStats, MAX_LEVEL, { attack: 15, defense: 15, stamina: 15 });
 }
+
+/** Stardust + candy cost to power up a Pokémon from its current level, mirroring the real game's rising curve. */
+export function powerUpCost(level: number): { stardust: number; candy: number } {
+  const stardust = level < 10 ? 200 : level < 20 ? 1300 : level < 30 ? 3000 : level < 40 ? 5000 : 10000;
+  const candy = level < 30 ? 1 : level < 40 ? 2 : 4;
+  return { stardust, candy };
+}
+
+/** The HP (stamina) stat shown on a Pokémon's detail screen: floor((base + IV) * CPM). */
+export function calculateHP(baseStamina: number, level: number, ivStamina: number): number {
+  const cpm = CP_MULTIPLIER[Math.min(Math.max(level, 1), MAX_LEVEL) - 1];
+  return Math.max(10, Math.floor((baseStamina + ivStamina) * cpm));
+}

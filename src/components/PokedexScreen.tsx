@@ -9,12 +9,14 @@ import {
 } from '../data/pokemonDatabase';
 import { maxCP } from '../data/cpTable';
 import PokemonSprite from './PokemonSprite';
+import ScreenHeader from './ScreenHeader';
 import type { CandyBag, OwnedPokemon } from '../types';
 
 interface PokedexScreenProps {
   onClose: () => void;
   owned: OwnedPokemon[];
   candies: CandyBag;
+  seen: number[];
   onEvolve: (uid: string, toSpeciesId: number, candyCost: number) => Promise<boolean>;
 }
 
@@ -30,8 +32,9 @@ const FILTERS: { key: RarityFilter; label: string }[] = [
 const ivPercent = (ivs: OwnedPokemon['ivs']) =>
   Math.round(((ivs.attack + ivs.defense + ivs.stamina) / 45) * 100);
 
-const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, onEvolve }) => {
+const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, seen, onEvolve }) => {
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<number | null>(null);
+  const seenSet = useMemo(() => new Set(seen), [seen]);
 
   // Search & filter state
   const [isSearching, setIsSearching] = useState(false);
@@ -102,7 +105,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             exit={{ y: -100 }}
-            className="absolute top-0 left-0 right-0 z-30 bg-[#e3350d] p-4 shadow-lg flex items-center gap-2"
+            className="absolute top-0 left-0 right-0 z-30 bg-[#0b2a3a] p-4 shadow-lg flex items-center gap-2"
           >
             <div className="flex-1 bg-white rounded-full flex items-center px-4 h-10">
                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -127,26 +130,22 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
         )}
       </AnimatePresence>
 
-      {/* Top Header - Authentic Red Banner */}
-      <div
-        className="h-20 flex flex-col justify-end items-center pb-2 relative z-10 shrink-0"
-        style={{
-          background: 'linear-gradient(to bottom, #E84A36 0%, #D23A26 100%)',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2)'
-        }}
-      >
-         <h1 className="text-white font-black tracking-[0.15em] text-xl drop-shadow-md font-sans">POKÉDEX</h1>
-      </div>
+      {/* Unified Pokémon GO header */}
+      <ScreenHeader title="POKÉDEX" />
 
       {/* Stats Bar */}
-      <div className="flex justify-center gap-12 py-3 bg-white border-b border-slate-200 shadow-sm relative z-10 shrink-0">
+      <div className="flex justify-center gap-10 py-3 bg-white border-b border-slate-200 shadow-sm relative z-10 shrink-0">
         <div className="flex flex-col items-center">
-          <span className="text-slate-500 text-xs font-bold tracking-wider">SPECIES</span>
-          <span className="text-slate-800 text-2xl font-black">{caughtSpeciesCount} / {POKEMON_DATABASE.length}</span>
+          <span className="text-slate-500 text-xs font-bold tracking-wider">SEEN</span>
+          <span className="text-slate-800 text-2xl font-black">{seenSet.size}</span>
         </div>
         <div className="flex flex-col items-center">
-          <span className="text-[#3b82f6] text-xs font-bold tracking-wider">CAUGHT</span>
-          <span className="text-slate-800 text-2xl font-black">{owned.length}</span>
+          <span className="text-[#1b6e7e] text-xs font-bold tracking-wider">CAUGHT</span>
+          <span className="text-slate-800 text-2xl font-black">{caughtSpeciesCount}</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-slate-500 text-xs font-bold tracking-wider">SPECIES</span>
+          <span className="text-slate-800 text-2xl font-black">{POKEMON_DATABASE.length}</span>
         </div>
       </div>
 
@@ -158,7 +157,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
             onClick={() => setRarityFilter(filter.key)}
             className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase whitespace-nowrap transition-colors ${
               rarityFilter === filter.key
-                ? 'bg-[#e3350d] text-white shadow-sm'
+                ? 'bg-[#1b6e7e] text-white shadow-sm'
                 : 'bg-slate-100 text-slate-500'
             }`}
           >
@@ -173,13 +172,15 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
           {filteredGrid.map((species) => {
             const caught = ownedBySpecies.get(species.id);
             const shiny = isShowcaseRarity(species.rarity);
-            const visible = !!caught || shiny;
+            const seenOnly = !caught && !shiny && seenSet.has(species.id);
+            const clickable = !!caught || shiny;
+            const visible = clickable || seenOnly;
 
             return (
               <div
                 key={species.id}
-                onClick={() => visible && setSelectedSpeciesId(species.id)}
-                className={`aspect-square bg-white border rounded-lg shadow-sm flex flex-col items-center justify-center relative overflow-hidden ${visible ? 'cursor-pointer active:scale-95 transition-transform' : ''} ${shiny ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-200'}`}
+                onClick={() => clickable && setSelectedSpeciesId(species.id)}
+                className={`aspect-square bg-white border rounded-lg shadow-sm flex flex-col items-center justify-center relative overflow-hidden ${clickable ? 'cursor-pointer active:scale-95 transition-transform' : ''} ${shiny ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-200'}`}
               >
                 <span className="absolute top-1 left-1.5 text-slate-400 font-bold text-[10px]">
                   #{species.id.toString().padStart(3, '0')}
@@ -193,7 +194,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                   )}
                 </div>
 
-                {visible ? (
+                {clickable ? (
                   <div className="w-full h-full flex items-center justify-center p-3 mt-2">
                     <PokemonSprite
                       id={species.id}
@@ -202,8 +203,20 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                       className="w-full h-full object-contain drop-shadow-md"
                     />
                   </div>
+                ) : seenOnly ? (
+                  // "Seen" but not caught: a dark silhouette, like the real Pokédex.
+                  <div className="w-full h-full flex items-center justify-center p-3 mt-2">
+                    <PokemonSprite
+                      id={species.id}
+                      name={species.name}
+                      className="w-full h-full object-contain opacity-60 [filter:brightness(0)_opacity(0.55)]"
+                    />
+                  </div>
                 ) : (
                   <span className="text-slate-300 font-black text-2xl mt-2">?</span>
+                )}
+                {visible && seenOnly && (
+                  <span className="absolute bottom-1 text-[8px] font-bold text-slate-400 tracking-wider uppercase">Seen</span>
                 )}
               </div>
             );
@@ -220,7 +233,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsSearching(true)}
-        className="absolute bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-b from-[#10b981] to-[#047857] shadow-lg border-[3px] border-white flex items-center justify-center z-20"
+        className="absolute bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-b from-[#1b6e7e] to-[#12515e] shadow-lg border-[3px] border-white flex items-center justify-center z-20"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       </motion.button>

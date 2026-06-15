@@ -7,7 +7,11 @@ const INVENTORY_KEY = 'caldasgo_inventory';
 const OWNED_KEY = 'caldasgo_owned_pokemon';
 const CANDY_KEY = 'caldasgo_candies';
 const XP_KEY = 'caldasgo_trainer_xp';
+const STARDUST_KEY = 'caldasgo_stardust';
+const SEEN_KEY = 'caldasgo_seen_species';
 const INIT_KEY = 'caldasgo_init_v3';
+
+const DEFAULT_STARDUST = 1000;
 
 const DEFAULT_INVENTORY: Inventory = {
   pokeballs: 20,
@@ -165,5 +169,49 @@ export const addTrainerXp = async (amount: number): Promise<number> => {
   } catch (err) {
     console.error('Error adding trainer XP:', err);
     return getTrainerXp();
+  }
+};
+
+export const getStardust = async (): Promise<number> => {
+  try {
+    const value = await localforage.getItem<number>(STARDUST_KEY);
+    return value ?? DEFAULT_STARDUST;
+  } catch (err) {
+    console.error('Error reading stardust:', err);
+    return DEFAULT_STARDUST;
+  }
+};
+
+export const addStardust = async (amount: number): Promise<number> => {
+  try {
+    const current = await getStardust();
+    const next = Math.max(0, current + amount);
+    await localforage.setItem(STARDUST_KEY, next);
+    return next;
+  } catch (err) {
+    console.error('Error updating stardust:', err);
+    return getStardust();
+  }
+};
+
+export const getSeenSpecies = async (): Promise<number[]> => {
+  try {
+    return (await localforage.getItem<number[]>(SEEN_KEY)) || [];
+  } catch (err) {
+    console.error('Error reading seen species:', err);
+    return [];
+  }
+};
+
+export const addSeenSpecies = async (speciesId: number): Promise<number[]> => {
+  try {
+    const current = await getSeenSpecies();
+    if (current.includes(speciesId)) return current;
+    const next = [...current, speciesId];
+    await localforage.setItem(SEEN_KEY, next);
+    return next;
+  } catch (err) {
+    console.error('Error adding seen species:', err);
+    return getSeenSpecies();
   }
 };

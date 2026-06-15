@@ -9,12 +9,14 @@ import EncounterScreen from '../components/EncounterScreen';
 import PokedexScreen from '../components/PokedexScreen';
 import PokemonStorageScreen from '../components/PokemonStorageScreen';
 import InventoryScreen from '../components/InventoryScreen';
+import PokestopScreen from '../components/PokestopScreen';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useSpawning } from '../hooks/useSpawning';
+import { usePokestops } from '../hooks/usePokestops';
 import { useTrainer } from '../hooks/useTrainer';
 import { useCollection } from '../hooks/useCollection';
 import { getPogoSprite, getPokemonImage } from '../data/pokemonDatabase';
-import type { SpawnedPokemon } from '../types/index';
+import type { Pokestop, SpawnedPokemon } from '../types/index';
 
 // Leaflet marker fix - the default icon URLs point at bundler-relative assets
 // that don't exist, so we delete the private lookup and provide CDN URLs instead.
@@ -45,10 +47,18 @@ const MapClickCapturer = ({ onClick }: { onClick: (e: LeafletMouseEvent) => void
 const MapScreen: React.FC = () => {
   const { location, isMock, setLocation } = useGeolocation();
   const { spawnedPokemon, removeSpawn } = useSpawning(location);
+  const { pokestops, spinPokestop, isSpinable } = usePokestops(location);
   const trainer = useTrainer();
   const collection = useCollection();
   const [activeOverlay, setActiveOverlay] = useState<'none' | 'menu' | 'pokedex' | 'storage' | 'inventory'>('none');
   const [encounter, setEncounter] = useState<SpawnedPokemon | null>(null);
+  const [activeStop, setActiveStop] = useState<Pokestop | null>(null);
+
+  // Record an encounter as "seen" the moment the player taps a wild Pokémon.
+  const openEncounter = (spawn: SpawnedPokemon) => {
+    collection.recordSeen(spawn.speciesId);
+    setEncounter(spawn);
+  };
 
   // If GPS is completely blocked and hook hasn't yielded yet
   if (!location) {
@@ -89,6 +99,33 @@ const MapScreen: React.FC = () => {
           {/* Capture map clicks for mock walking */}
           <MapClickCapturer onClick={handleMapClick} />
 
+          {/* Render PokéStops as the iconic blue spinning discs */}
+          {pokestops.map((stop: Pokestop) => {
+            const spinnable = isSpinable(stop);
+            const stopIcon = L.divIcon({
+              html: `
+                <div class="relative flex flex-col items-center -ml-5 -mt-10 cursor-pointer">
+                  <div class="w-10 h-10 rounded-full ${spinnable ? 'bg-[#48b6e0]' : 'bg-[#8a6fc4]'} border-[3px] border-white shadow-[0_4px_8px_rgba(0,0,0,0.4)] flex items-center justify-center">
+                    <div class="w-5 h-5 rounded-full bg-white/90 flex items-center justify-center">
+                      <div class="w-2.5 h-2.5 rounded-full ${spinnable ? 'bg-[#48b6e0]' : 'bg-[#8a6fc4]'}"></div>
+                    </div>
+                  </div>
+                  <div class="w-1.5 h-5 ${spinnable ? 'bg-[#3a9ec4]' : 'bg-[#74599e]'}"></div>
+                </div>
+              `,
+              className: 'custom-pokestop-icon',
+              iconSize: [40, 60],
+            });
+            return (
+              <Marker
+                key={stop.id}
+                position={[stop.lat, stop.lng]}
+                icon={stopIcon}
+                eventHandlers={{ click: () => setActiveStop(stop) }}
+              />
+            );
+          })}
+
           {/* Render Spawns */}
           {spawnedPokemon.map((spawn: SpawnedPokemon) => {
             // Real PoGo sprite first, falling back to official artwork, then basic sprite.
@@ -111,7 +148,7 @@ const MapScreen: React.FC = () => {
                 key={spawn.id}
                 position={[spawn.lat, spawn.lng]}
                 icon={icon}
-                eventHandlers={{ click: () => setEncounter(spawn) }}
+                eventHandlers={{ click: () => openEncounter(spawn) }}
               />
             );
           })}
@@ -159,6 +196,7 @@ const MapScreen: React.FC = () => {
           onClose={() => setActiveOverlay('menu')}
           owned={collection.owned}
           candies={collection.candies}
+          seen={collection.seen}
           onEvolve={collection.evolve}
         />
       )}
@@ -168,7 +206,9 @@ const MapScreen: React.FC = () => {
           onClose={() => setActiveOverlay('menu')}
           owned={collection.owned}
           candies={collection.candies}
+          stardust={collection.stardust}
           onEvolve={collection.evolve}
+          onPowerUp={collection.powerUp}
         />
       )}
 
@@ -187,6 +227,16 @@ const MapScreen: React.FC = () => {
             removeSpawn(encounter.id);
             setEncounter(null);
           }}
+        />
+      )}
+
+      {/* PokéStop Screen */}
+      {activeStop && (
+        <PokestopScreen
+          pokestop={activeStop}
+          isSpinable={isSpinable(activeStop)}
+          onClose={() => setActiveStop(null)}
+          onSpin={(id) => spinPokestop(id)}
         />
       )}
     </div>

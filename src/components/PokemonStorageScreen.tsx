@@ -1,15 +1,28 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSpecies, getTypeIcon, TYPE_COLORS } from '../data/pokemonDatabase';
+import { calculateHP, powerUpCost, MAX_LEVEL } from '../data/cpTable';
 import PokemonSprite from './PokemonSprite';
+import ScreenHeader from './ScreenHeader';
 import type { CandyBag, OwnedPokemon } from '../types';
 
 interface PokemonStorageScreenProps {
   onClose: () => void;
   owned: OwnedPokemon[];
   candies: CandyBag;
+  stardust: number;
   onEvolve: (uid: string, toSpeciesId: number, candyCost: number) => Promise<boolean>;
+  onPowerUp: (uid: string) => Promise<boolean>;
 }
+
+const CANDY_ICON = 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png';
+
+// Stardust is a glowing teal four-point sparkle in the real game.
+const StardustIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+    <path d="M12 1l2.2 7.4L21 11l-6.8 2.6L12 21l-2.2-7.4L3 11l6.8-2.6z" fill="#2dd4bf" stroke="#0d9488" strokeWidth="0.8" />
+  </svg>
+);
 
 type SortKey = 'recent' | 'cp' | 'name' | 'number';
 
@@ -26,7 +39,7 @@ const STORAGE_CAP = 300;
 const ivPercent = (ivs: OwnedPokemon['ivs']) =>
   Math.round(((ivs.attack + ivs.defense + ivs.stamina) / 45) * 100);
 
-const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, owned, candies, onEvolve }) => {
+const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, owned, candies, stardust, onEvolve, onPowerUp }) => {
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
@@ -55,9 +68,13 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
 
   const handleEvolve = async (toSpeciesId: number, candyCost: number) => {
     if (!selected) return;
-    const ok = await onEvolve(selected.uid, toSpeciesId, candyCost);
+    await onEvolve(selected.uid, toSpeciesId, candyCost);
     // The uid stays the same after evolution, so the detail view just re-renders with the new species.
-    if (!ok) return;
+  };
+
+  const handlePowerUp = async () => {
+    if (!selected) return;
+    await onPowerUp(selected.uid);
   };
 
   return (
@@ -67,19 +84,8 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
       exit={{ opacity: 0, y: 50 }}
       className="absolute inset-0 z-[700] bg-[#f8fafc] flex flex-col font-sans overflow-hidden"
     >
-      {/* Top Header - Authentic Green Banner */}
-      <div
-        className="h-20 flex flex-col justify-end items-center pb-2 relative z-10 shrink-0"
-        style={{
-          background: 'linear-gradient(to bottom, #2DBE72 0%, #1FA35E 100%)',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2)',
-        }}
-      >
-        <h1 className="text-white font-black tracking-[0.15em] text-xl drop-shadow-md font-sans">POKÉMON</h1>
-        <span className="absolute right-4 bottom-2.5 text-white/90 font-bold text-sm tracking-wide">
-          {owned.length}/{STORAGE_CAP}
-        </span>
-      </div>
+      {/* Unified Pokémon GO header */}
+      <ScreenHeader title="POKÉMON" rightLabel={`${owned.length}/${STORAGE_CAP}`} />
 
       {/* Sort Bar */}
       <div className="flex items-center gap-2 px-3 py-2 bg-white border-b-2 border-slate-200 shadow-sm relative z-10 shrink-0 overflow-x-auto">
@@ -89,7 +95,7 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
             key={s.key}
             onClick={() => setSortKey(s.key)}
             className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide whitespace-nowrap transition-colors ${
-              sortKey === s.key ? 'bg-[#1FA35E] text-white shadow-sm' : 'bg-slate-100 text-slate-500'
+              sortKey === s.key ? 'bg-[#1b6e7e] text-white shadow-sm' : 'bg-slate-100 text-slate-500'
             }`}
           >
             {s.label}
@@ -197,7 +203,21 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
 
             {/* Info Sheet */}
             <div className="w-full flex flex-col items-center z-10 mt-2 flex-1 bg-white pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-[2.5rem] pb-8">
-              <h2 className="text-3xl font-black text-slate-800 tracking-wide uppercase mb-1">{selectedSpecies.name}</h2>
+              <h2 className="text-3xl font-black text-slate-800 tracking-wide uppercase mb-2">{selectedSpecies.name}</h2>
+
+              {/* HP bar (real game shows current/max HP under the name) */}
+              {(() => {
+                const hp = calculateHP(selectedSpecies.baseStats.stamina, selected.level, selected.ivs.stamina);
+                return (
+                  <div className="w-full px-12 flex flex-col items-center mb-3">
+                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#5fd35f] rounded-full" style={{ width: '100%' }} />
+                    </div>
+                    <span className="text-slate-500 font-bold text-sm mt-1.5">{hp} / {hp} HP</span>
+                  </div>
+                );
+              })()}
+
               <div className="text-slate-500 font-bold text-sm mb-4">
                 Level {selected.level} &middot; IV {ivPercent(selected.ivs)}%
               </div>
@@ -241,12 +261,50 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                 </div>
               </div>
 
-              {/* Candy */}
-              <div className="w-full px-8 flex justify-center gap-3 mb-6 items-center">
-                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-8 h-8 drop-shadow-sm" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                <span className="font-black text-slate-800 text-xl">{candies[selectedSpecies.family] || 0}</span>
-                <span className="text-slate-400 font-bold text-xs tracking-wider uppercase">{selectedSpecies.family} CANDY</span>
+              {/* Stardust + Candy resources */}
+              <div className="w-full px-8 flex justify-center gap-10 mb-4 items-start">
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-center gap-2">
+                    <StardustIcon className="w-7 h-7 drop-shadow-sm" />
+                    <span className="font-black text-slate-800 text-xl">{stardust.toLocaleString()}</span>
+                  </div>
+                  <span className="text-slate-400 font-bold text-[10px] tracking-wider uppercase">Stardust</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-center gap-2">
+                    <img src={CANDY_ICON} alt="Candy" className="w-7 h-7 drop-shadow-sm" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    <span className="font-black text-slate-800 text-xl">{candies[selectedSpecies.family] || 0}</span>
+                  </div>
+                  <span className="text-slate-400 font-bold text-[10px] tracking-wider uppercase">{selectedSpecies.family} Candy</span>
+                </div>
               </div>
+
+              {/* Power Up button */}
+              {(() => {
+                if (selected.level >= MAX_LEVEL) {
+                  return <div className="text-slate-400 font-bold text-xs mb-6 uppercase tracking-wider">Max level reached</div>;
+                }
+                const cost = powerUpCost(selected.level);
+                const canPowerUp = stardust >= cost.stardust && (candies[selectedSpecies.family] || 0) >= cost.candy;
+                return (
+                  <button
+                    onClick={handlePowerUp}
+                    disabled={!canPowerUp}
+                    className="w-[80%] rounded-full py-3 mb-3 flex justify-between items-center px-6 active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
+                    style={{
+                      background: 'linear-gradient(to bottom, #f6c243 0%, #e0a92c 100%)',
+                      boxShadow: '0 4px 10px rgba(224,169,44,0.4), inset 0 2px 4px rgba(255,255,255,0.4)',
+                      border: '2px solid #c99526',
+                    }}
+                  >
+                    <span className="text-[#5a3d00] font-black tracking-widest text-base drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]">POWER UP</span>
+                    <div className="flex items-center gap-3 text-[#5a3d00] font-black text-sm">
+                      <span className="flex items-center gap-1"><StardustIcon className="w-4 h-4" />{cost.stardust.toLocaleString()}</span>
+                      <span className="flex items-center gap-1"><img src={CANDY_ICON} alt="" className="w-4 h-4" onError={(e) => { e.currentTarget.style.display = 'none'; }} />{cost.candy}</span>
+                    </div>
+                  </button>
+                );
+              })()}
 
               {/* Evolve buttons */}
               {selectedSpecies.evolutions.length > 0 && (
