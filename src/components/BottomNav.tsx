@@ -22,22 +22,22 @@ const PokeBallIcon = () => (
 
 /** Filled red Pokédex device glyph. */
 const PokedexFillIcon = () => (
-  <img src="https://archives.bulbagarden.net/media/upload/b/b2/GO_Pok%C3%A9dex_icon.png" alt="Pokédex" className="w-[42px] h-[42px] object-contain drop-shadow-md" onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/pokedex.png'; }} />
+  <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_pokedex.png" alt="Pokédex" className="w-[42px] h-[42px] object-contain drop-shadow-md" />
 );
 
 /** Filled backpack / item bag glyph. */
 const BagFillIcon = () => (
-  <img src="https://archives.bulbagarden.net/media/upload/d/d4/GO_Items_icon.png" alt="Items" className="w-[42px] h-[42px] object-contain drop-shadow-md" onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/potion.png'; }} />
+  <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_items.png" alt="Items" className="w-[42px] h-[42px] object-contain drop-shadow-md" />
 );
 
 /** Filled shopping bag glyph for the Shop shortcut. */
 const ShopFillIcon = () => (
-  <img src="https://archives.bulbagarden.net/media/upload/2/22/GO_Shop_icon.png" alt="Shop" className="w-[42px] h-[42px] object-contain drop-shadow-md" />
+  <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_shop.png" alt="Shop" className="w-[42px] h-[42px] object-contain drop-shadow-md" />
 );
 
 /** Filled shield-and-star glyph for the Battle League shortcut. */
 const BattleFillIcon = () => (
-  <img src="https://archives.bulbagarden.net/media/upload/9/91/GO_Battle_icon.png" alt="Battle" className="w-[42px] h-[42px] object-contain drop-shadow-md" />
+  <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/btn_battle.png" alt="Battle" className="w-[42px] h-[42px] object-contain drop-shadow-md" />
 );
 
 interface FanButton {

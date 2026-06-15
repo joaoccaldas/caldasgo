@@ -41,9 +41,9 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
           {/* Authentic Trainer Avatar Image */}
           <div className="absolute inset-[5px] rounded-full border-[3px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden bg-sky-300">
             <img
-              src="https://archives.bulbagarden.net/media/upload/thumb/f/f6/GO_Male_avatar_1.png/200px-GO_Male_avatar_1.png"
-              alt="Avatar"
-              className="w-[160%] h-[160%] object-cover -ml-4 mt-1"
+              src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Menu%20Icons/ic_defaultMaleAvatar.png"
+              alt="Trainer Profile"
+              className="w-14 h-14 rounded-full border-4 border-white shadow bg-white object-cover object-top p-1"
             />
           </div>
           {/* Level Badge */}

@@ -19,7 +19,7 @@ const InventoryScreen: React.FC<InventoryScreenProps> = ({ onClose }) => {
     { id: 5, name: 'Great Ball', count: 15, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/great-ball.png', desc: 'A good, high-performance Poké Ball that provides a higher Pokémon catch rate than a standard Poké Ball.' },
     { id: 6, name: 'Ultra Ball', count: 8, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/ultra-ball.png', desc: 'An ultra-high-performance Poké Ball that provides a higher success rate for catching Pokémon than a Great Ball.' },
     { id: 7, name: 'Razz Berry', count: inventory.razzBerries, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/razz-berry.png', desc: 'Feed this to a wild Pokémon to make it easier to catch.' },
-    { id: 8, name: 'Golden Razz Berry', count: 2, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/golden-razz-berry.png', desc: 'Feed this to a wild Pokémon to make it much easier to catch.' },
+    { id: 8, name: 'Golden Razz Berry', count: 2, image: 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/sitrus-berry.png', desc: 'Feed this to a wild Pokémon to make it much easier to catch.' },
   ];
 
   return (
