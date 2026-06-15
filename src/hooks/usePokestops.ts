@@ -4,6 +4,15 @@ import type { Pokestop } from '../types';
 
 const POKESTOP_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
 
+// Generic landmark-style names, similar to the kinds of real-world POIs
+// that commonly become PokéStops.
+const POKESTOP_NAMES = [
+  'Community Garden Mural', 'Old Town Clock Tower', 'Riverside Trail Marker',
+  'Heritage Fountain', 'Sunset Park Pavilion', 'Historic Plaza Statue',
+  'Neighborhood Library', 'Corner Street Art', 'Memorial Garden Bench',
+  'City Hall Plaza', 'Lighthouse Point Marker', 'Central Square Sundial',
+];
+
 const generatePokestops = (center: Location, count: number): Pokestop[] => {
   const stops: Pokestop[] = [];
   for (let i = 0; i < count; i++) {
@@ -15,9 +24,12 @@ const generatePokestops = (center: Location, count: number): Pokestop[] => {
     const t = 2 * Math.PI * v;
     const x = w * Math.cos(t);
     const y = w * Math.sin(t);
-    
+
+    const id = `pokestop_${i}_${Date.now()}`;
     stops.push({
-      id: `pokestop_${i}_${Date.now()}`,
+      id,
+      name: POKESTOP_NAMES[Math.floor(Math.random() * POKESTOP_NAMES.length)],
+      photoSeed: id,
       lat: center.lat + x,
       lng: center.lng + y,
       lastSpun: null,

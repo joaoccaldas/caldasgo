@@ -42,6 +42,8 @@ const PokestopScreen: React.FC<PokestopScreenProps> = ({ pokestop, isSpinable, o
     }, 2500);
   };
 
+  const canSpin = isSpinable && !spinning && !rewards;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -56,36 +58,53 @@ const PokestopScreen: React.FC<PokestopScreenProps> = ({ pokestop, isSpinable, o
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
-        <div className="bg-slate-800/80 px-4 py-1 rounded-full border border-slate-600 shadow-md">
-          <span className="text-blue-400 font-bold uppercase tracking-wider text-sm">
-            PokéStop
-          </span>
-        </div>
+        <button className="bg-slate-800 p-2 rounded-full text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center w-full relative">
+      <div className="flex-1 flex flex-col items-center justify-center w-full relative gap-5">
         {/* Photo Disc */}
         <motion.div
-          animate={spinning ? { rotate: 1080 } : {}}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          drag={canSpin ? 'x' : false}
+          dragSnapToOrigin
+          dragElastic={0.6}
+          onDragEnd={(_e, info) => {
+            if (Math.abs(info.offset.x) > 60 || Math.abs(info.velocity.x) > 400) handleSpin();
+          }}
+          animate={spinning ? { rotate: 1080 } : { rotate: 0 }}
+          transition={{ duration: 1.2, ease: 'easeOut' }}
           onClick={handleSpin}
-          className={`relative w-52 h-52 rounded-full flex items-center justify-center cursor-pointer transition-colors ${isSpinable ? 'shadow-[0_0_30px_rgba(56,189,248,0.6)]' : 'shadow-[0_0_30px_rgba(168,85,247,0.5)]'}`}
+          className={`relative w-56 h-56 rounded-full flex items-center justify-center ${canSpin ? 'cursor-grab active:cursor-grabbing' : ''} ${isSpinable ? 'shadow-[0_0_30px_rgba(56,189,248,0.6)]' : 'shadow-[0_0_30px_rgba(168,85,247,0.5)]'}`}
         >
           {/* Outer tick ring */}
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 200">
-            <circle cx="100" cy="100" r="96" fill="none" stroke={isSpinable ? '#38bdf8' : '#a855f7'} strokeWidth="3" strokeDasharray="2 10" opacity="0.8" />
+            <circle cx="100" cy="100" r="98" fill="none" stroke={isSpinable ? '#38bdf8' : '#a855f7'} strokeWidth="3" strokeDasharray="2 10" opacity="0.8" />
           </svg>
-          {/* Disc body */}
-          <div className={`w-44 h-44 rounded-full border-[6px] ${isSpinable ? 'border-sky-300 bg-gradient-to-br from-sky-400 to-blue-600' : 'border-purple-300 bg-gradient-to-br from-purple-400 to-purple-700'} flex items-center justify-center shadow-inner`}>
-            <div className="w-24 h-24 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
-              <img
-                src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/poke-ball.png"
-                alt="PokéStop"
-                className="w-16 h-16 object-contain"
-              />
-            </div>
+          {/* Landmark photo */}
+          <div className={`w-44 h-44 rounded-full overflow-hidden border-[6px] ${isSpinable ? 'border-sky-300' : 'border-purple-300'} shadow-inner bg-slate-700`}>
+            <img
+              src={`https://picsum.photos/seed/${pokestop.photoSeed}/300/300`}
+              alt={pokestop.name}
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          </div>
+          {/* Poké Ball disc badge */}
+          <div className={`absolute -bottom-2 w-14 h-14 rounded-full bg-white border-[3px] ${isSpinable ? 'border-sky-300' : 'border-purple-300'} shadow-lg flex items-center justify-center`}>
+            <img
+              src={`${ITEM_SPRITE_BASE}poke-ball.png`}
+              alt=""
+              className="w-9 h-9 object-contain"
+              draggable={false}
+            />
           </div>
         </motion.div>
+
+        {/* Name */}
+        <div className="text-center px-6">
+          <h2 className="text-white font-black text-xl tracking-wide drop-shadow">{pokestop.name}</h2>
+        </div>
 
         {/* Rewards Popups */}
         <AnimatePresence>
@@ -119,7 +138,7 @@ const PokestopScreen: React.FC<PokestopScreenProps> = ({ pokestop, isSpinable, o
       <div className="w-full max-w-sm mb-12">
         <div className="bg-slate-800 rounded-2xl p-4 shadow-xl border border-slate-700 mb-6 text-center">
           <p className="text-lg font-medium text-white">
-            {isSpinable ? (spinning ? 'Spinning...' : 'Tap to spin!') : 'This PokéStop is out of items. Try again later.'}
+            {isSpinable ? (spinning ? 'Spinning...' : 'Drag to spin!') : 'This PokéStop is out of items. Try again later.'}
           </p>
         </div>
       </div>

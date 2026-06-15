@@ -39,6 +39,8 @@ export type CandyBag = Record<string, number>;
 
 export interface Pokestop {
   id: string;
+  name: string;
+  photoSeed: string;
   lat: number;
   lng: number;
   lastSpun: number | null; // timestamp
