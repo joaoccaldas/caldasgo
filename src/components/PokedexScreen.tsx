@@ -59,10 +59,8 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
   const caughtSpeciesCount = ownedBySpecies.size;
 
   const filteredGrid = useMemo(() => {
-    // 1. Cap the Pokédex at the highest ID the player has encountered
-    const maxSeenId = seenSet.size > 0 ? Math.max(...Array.from(seenSet)) : 0;
-    
-    let entries = POKEMON_DATABASE.filter(s => s.id <= maxSeenId);
+    // For a complete and impressive Pokédex, show all Pokémon entries. Unseen ones will render as numbers/placeholders.
+    let entries = POKEMON_DATABASE;
 
     if (regionFilter !== 'all') {
       entries = entries.filter(species => species.generation === regionFilter);
