@@ -118,20 +118,20 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                 <button
                   key={p.uid}
                   onClick={() => setSelectedUid(p.uid)}
-                  className="aspect-square bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col items-center justify-end relative overflow-hidden active:scale-95 transition-transform pb-1"
+                  className="aspect-square bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col items-center overflow-hidden active:scale-95 transition-transform p-1"
                 >
-                  {/* CP badge top */}
-                  <span className="absolute top-1 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-500 tracking-wide">
+                  {/* CP on its own top strip so it never collides with the sprite */}
+                  <span className="text-[11px] font-black text-slate-600 tracking-wide leading-none pt-1 shrink-0">
                     CP {p.cp}
                   </span>
-                  <div className="flex-1 w-full flex items-center justify-center p-2 pt-4">
+                  <div className="flex-1 min-h-0 w-full flex items-center justify-center">
                     <PokemonSprite
                       id={species.id}
                       name={species.name}
-                      className="w-full h-full object-contain drop-shadow-md"
+                      className="max-h-full max-w-full object-contain drop-shadow-md"
                     />
                   </div>
-                  <span className="text-[11px] font-bold text-slate-700 truncate w-full text-center px-1">
+                  <span className="text-[10px] font-bold text-slate-600 truncate w-full text-center leading-tight pb-0.5 shrink-0">
                     {species.name}
                   </span>
                 </button>

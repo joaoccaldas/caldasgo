@@ -55,6 +55,11 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
   }, [owned]);
 
   const caughtSpeciesCount = ownedBySpecies.size;
+  // Anything caught has necessarily been seen, so the SEEN total is the union.
+  const seenCount = useMemo(
+    () => new Set([...seen, ...ownedBySpecies.keys()]).size,
+    [seen, ownedBySpecies],
+  );
 
   const filteredGrid = useMemo(() => {
     let entries = POKEMON_DATABASE;
@@ -137,7 +142,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
       <div className="flex justify-center gap-10 py-3 bg-white border-b border-slate-200 shadow-sm relative z-10 shrink-0">
         <div className="flex flex-col items-center">
           <span className="text-slate-500 text-xs font-bold tracking-wider">SEEN</span>
-          <span className="text-slate-800 text-2xl font-black">{seenSet.size}</span>
+          <span className="text-slate-800 text-2xl font-black">{seenCount}</span>
         </div>
         <div className="flex flex-col items-center">
           <span className="text-[#1b6e7e] text-xs font-bold tracking-wider">CAUGHT</span>
