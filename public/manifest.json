@@ -1,13 +1,16 @@
 {
+  "id": "/caldasgo/",
   "name": "CaldasGO",
   "short_name": "CaldasGO",
-  "description": "A Pokémon GO inspired AR exploration game",
-  "start_url": "./",
-  "scope": "./",
+  "description": "An unofficial location-based creature exploration game.",
+  "start_url": "/caldasgo/",
+  "scope": "/caldasgo/",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait-primary",
   "background_color": "#0b2a3a",
   "theme_color": "#0b2a3a",
+  "categories": ["games", "entertainment"],
   "icons": [
     {
       "src": "./icon-192.png",
