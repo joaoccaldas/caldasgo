@@ -134,8 +134,8 @@ const MapScreen: React.FC = () => {
             const icon = L.divIcon({
               html: `
                 <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4">
-                  <div class="absolute inset-0 rounded-full bg-white/40 animate-ping opacity-70 border-[2px] border-white"></div>
-                  <img src="${pogo}" alt="${spawn.species.name}" class="w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" onerror="this.onerror=function(){this.onerror=null;this.src='${basic}'};this.src='${artwork}'" />
+                  <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-black/25 rounded-[100%] blur-[1px]"></div>
+                  <img src="${pogo}" alt="${spawn.species.name}" class="relative w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" onerror="this.onerror=function(){this.onerror=null;this.src='${basic}'};this.src='${artwork}'" />
                 </div>
               `,
               className: 'custom-pokemon-icon',
@@ -176,16 +176,14 @@ const MapScreen: React.FC = () => {
          <div className="absolute w-20 h-20 rounded-full bg-[#4cc3ff]/20 border-2 border-[#4cc3ff]/40 animate-ping" />
          <div className="absolute w-20 h-20 rounded-full bg-[#4cc3ff]/10 border border-[#4cc3ff]/30" />
          {/* Ground shadow */}
-         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-3 bg-black/30 rounded-[100%] blur-sm" />
-         {/* Avatar disc */}
-         <div className="relative w-14 h-14 rounded-full bg-gradient-to-b from-[#48b6e0] to-[#2a86b8] border-[3px] border-white shadow-lg overflow-hidden flex items-end justify-center">
-            <img
-              src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
-              alt="You"
-              className="w-[115%] h-[115%] object-cover -mb-1"
-              onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/25.png'; }}
-            />
-         </div>
+         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/30 rounded-[100%] blur-sm" />
+         {/* Trainer standee */}
+         <img
+           src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
+           alt="You"
+           className="relative w-16 h-16 object-contain drop-shadow-[0_5px_8px_rgba(0,0,0,0.4)]"
+           onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/25.png'; }}
+         />
          {/* Fake GPS Mock Indicator */}
          {isMock && (
            <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-slate-800/80 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap border border-white/20 shadow-md">
