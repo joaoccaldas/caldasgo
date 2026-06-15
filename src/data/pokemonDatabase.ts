@@ -815,6 +815,17 @@ export function getPokemonImage(id: number): string {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
 }
 
+/** Shiny official artwork for a given Pokédex id. */
+export function getShinyPokemonImage(id: number): string {
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${id}.png`;
+}
+
+/** Legendary and Mythical Pokémon are showcased in the Pokédex in their shiny form, even before they're caught. */
+export function isShowcaseRarity(rarity: Rarity): boolean {
+  return rarity === 'legendary' || rarity === 'mythical';
+}
+
+
 /** Relative spawn weight per rarity tier - higher = more common in the wild. */
 export const RARITY_SPAWN_WEIGHT: Record<Rarity, number> = {
   common: 100,

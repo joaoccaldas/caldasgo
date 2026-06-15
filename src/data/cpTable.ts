@@ -41,3 +41,8 @@ export function calculateCP(
   const cp = (atk * Math.sqrt(def) * Math.sqrt(sta) * cpm * cpm) / 10;
   return Math.max(10, Math.floor(cp));
 }
+
+/** Maximum possible CP for a species: level 50 with perfect (15/15/15) IVs. */
+export function maxCP(baseStats: { attack: number; defense: number; stamina: number }): number {
+  return calculateCP(baseStats, MAX_LEVEL, { attack: 15, defense: 15, stamina: 15 });
+}
