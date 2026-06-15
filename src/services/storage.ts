@@ -9,7 +9,7 @@ const CANDY_KEY = 'caldasgo_candies';
 const XP_KEY = 'caldasgo_trainer_xp';
 const STARDUST_KEY = 'caldasgo_stardust';
 const SEEN_KEY = 'caldasgo_seen_species';
-const INIT_KEY = 'caldasgo_init_v4';
+const INIT_KEY = 'caldasgo_init_v5';
 
 const DEFAULT_STARDUST = 1000;
 
