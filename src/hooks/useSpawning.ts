@@ -1,12 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Location } from './useGeolocation';
 import { POKEMON_DATABASE, RARITY_SPAWN_WEIGHT } from '../data/pokemonDatabase';
 import { calculateCP } from '../data/cpTable';
 import type { IVs, SpawnedPokemon } from '../types';
 
-const MAX_SPAWNS = 6;
-const SPAWN_INTERVAL_MS = 15000; // Try to spawn every 15 seconds
-const DESPAWN_TIME_MS = 60000 * 5; // Despawn after 5 minutes
+const MAX_SPAWNS = 8;
+const INITIAL_SPAWNS = 4;
+const SPAWN_INTERVAL_MS = 15_000;
+const DESPAWN_TIME_MS = 60_000 * 5;
 
 const TOTAL_SPAWN_WEIGHT = POKEMON_DATABASE.reduce(
   (sum, species) => sum + RARITY_SPAWN_WEIGHT[species.rarity],
@@ -28,64 +29,72 @@ const randomIvs = (): IVs => ({
   stamina: Math.floor(Math.random() * 16),
 });
 
-// Generate a random offset roughly between 10 to 100 meters away
-const getRandomOffset = () => {
-  const radius = 0.001; // roughly 111 meters
-  const u = Math.random();
-  const v = Math.random();
-  const w = radius * Math.sqrt(u);
-  const t = 2 * Math.PI * v;
-  const x = w * Math.cos(t);
-  const y = w * Math.sin(t);
-  return { dLat: x, dLng: y };
+const getRandomOffset = (minimumRadius = 0.00016, maximumRadius = 0.00105) => {
+  const angle = Math.random() * Math.PI * 2;
+  const radius = minimumRadius + Math.sqrt(Math.random()) * (maximumRadius - minimumRadius);
+  return {
+    dLat: radius * Math.cos(angle),
+    dLng: radius * Math.sin(angle),
+  };
 };
 
-const spawnRandomPokemon = (loc: Location): SpawnedPokemon => {
+const spawnRandomPokemon = (location: Location): SpawnedPokemon => {
   const species = pickRandomSpecies();
   const level = Math.floor(Math.random() * 30) + 1;
   const ivs = randomIvs();
   const offset = getRandomOffset();
 
   return {
-    id: Math.random().toString(36).substring(2, 9),
+    id: `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`,
     speciesId: species.id,
     species,
     level,
     ivs,
     cp: calculateCP(species.baseStats, level, ivs),
-    lat: loc.lat + offset.dLat,
-    lng: loc.lng + offset.dLng,
+    lat: location.lat + offset.dLat,
+    lng: location.lng + offset.dLng,
     spawnTime: Date.now(),
   };
 };
 
 export const useSpawning = (playerLocation: Location | null) => {
   const [spawnedPokemon, setSpawnedPokemon] = useState<SpawnedPokemon[]>([]);
-  const lastSpawnTime = useRef<number>(0);
+  const lastSpawnTime = useRef(0);
+  const hasSeededWorld = useRef(false);
+
+  useEffect(() => {
+    if (!playerLocation || hasSeededWorld.current) return;
+
+    hasSeededWorld.current = true;
+    lastSpawnTime.current = Date.now();
+    setSpawnedPokemon(
+      Array.from({ length: INITIAL_SPAWNS }, () => spawnRandomPokemon(playerLocation)),
+    );
+  }, [playerLocation]);
 
   useEffect(() => {
     if (!playerLocation) return;
 
-    const interval = setInterval(() => {
+    const interval = window.setInterval(() => {
       const now = Date.now();
 
-      setSpawnedPokemon(prev => {
-        const alive = prev.filter(p => now - p.spawnTime < DESPAWN_TIME_MS);
+      setSpawnedPokemon((current) => {
+        const active = current.filter((pokemon) => now - pokemon.spawnTime < DESPAWN_TIME_MS);
 
-        if (alive.length < MAX_SPAWNS && now - lastSpawnTime.current > SPAWN_INTERVAL_MS) {
+        if (active.length < MAX_SPAWNS && now - lastSpawnTime.current >= SPAWN_INTERVAL_MS) {
           lastSpawnTime.current = now;
-          return [...alive, spawnRandomPokemon(playerLocation)];
+          return [...active, spawnRandomPokemon(playerLocation)];
         }
 
-        return alive;
+        return active;
       });
-    }, 5000); // Check every 5 seconds
+    }, 5_000);
 
-    return () => clearInterval(interval);
+    return () => window.clearInterval(interval);
   }, [playerLocation]);
 
   const removeSpawn = (spawnId: string) => {
-    setSpawnedPokemon(prev => prev.filter(p => p.id !== spawnId));
+    setSpawnedPokemon((current) => current.filter((pokemon) => pokemon.id !== spawnId));
   };
 
   return { spawnedPokemon, removeSpawn };
