@@ -98,10 +98,9 @@ Stardust currency pill + weather badge (top-right). The bottom row
 ## Roadmap (remaining phases)
 
 1. ~~Design tokens, typography, iconography, bottom navigation~~ ✅
-2. Map world: vector-style teal-blue terrain, styled PokéStop/Gym
-   markers, weather/day-night overlay.
-3. Animated, depth-shaded Pokémon sprites with idle bob + contact shadows.
-4. Catch encounter screen: GO-fidelity rings, ball carousel, AR/camera controls.
-5. Pokédex card restyle: white cards, type accents, registered glow.
-6. Pokémon detail sheet: IV appraisal bars, high-contrast Power Up bar, move/buddy rows.
-7. Motion polish pass across all screens + reduced-motion audit.
+2. ~~Map world: vector-style teal-blue terrain, styled PokéStop/Gym markers, weather/day-night overlay.~~ ✅
+3. ~~Animated, depth-shaded Pokémon sprites with idle bob + contact shadows.~~ ✅
+4. ~~Catch encounter screen: GO-fidelity rings, ball carousel, AR/camera controls.~~ ✅
+5. ~~Pokédex card restyle: white cards, type accents, registered glow.~~ ✅
+6. ~~Pokémon detail sheet: IV appraisal bars, high-contrast Power Up bar, move/buddy rows.~~ ✅
+7. ~~Motion polish pass across all screens + reduced-motion audit.~~ ✅
