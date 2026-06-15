@@ -190,19 +190,9 @@ const MapScreen: React.FC = () => {
           </Marker>
         </Map>
 
-        {/* A soft green wash unifies the map into Pokémon GO's signature
-            daytime palette regardless of the base tile colors. */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: '#5fbf6b', mixBlendMode: 'multiply', opacity: 0.14 }}
-        />
       </div>
 
       <style>{`
-        /* MapLibre Map style tweaks */
-        .maplibregl-canvas {
-          filter: sepia(35%) hue-rotate(52deg) saturate(1.8) brightness(1.05) contrast(1.03);
-        }
         @keyframes pulse-ring {
           0% { transform: scale(0.33); opacity: 1; }
           80%, 100% { transform: scale(1); opacity: 0; }
