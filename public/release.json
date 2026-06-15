@@ -1,0 +1,28 @@
+{
+  "release": "ui-fidelity-batch-2026-06-15",
+  "branch": "main",
+  "screens": [
+    "SplashScreen",
+    "SafetyScreen",
+    "PerspectiveOverworld",
+    "HUD",
+    "MainMenu",
+    "PokestopScreen",
+    "PokemonStorageScreen",
+    "PokedexScreen",
+    "EncounterScreen",
+    "InventoryScreen"
+  ],
+  "features": [
+    "automatic startup flow",
+    "pseudo-3D overworld",
+    "animated trainer avatar",
+    "native radial navigation",
+    "swipeable Photo Disc",
+    "collection tabs and sort controls",
+    "regional Pokédex navigation",
+    "gesture-based catch sequence",
+    "standalone PWA display",
+    "deployment revision markers"
+  ]
+}
