@@ -150,9 +150,11 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                       className="max-h-full max-w-full object-contain drop-shadow-md"
                     />
                   </div>
-                  <span className="text-[10px] font-bold text-slate-600 truncate w-full text-center leading-tight pb-0.5 shrink-0">
-                    {species.name}
-                  </span>
+                  <div className="w-full px-2 pb-1 pt-0.5">
+                    <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#5fd35f]" style={{ width: '100%' }} />
+                    </div>
+                  </div>
                 </button>
               );
             })}
@@ -206,12 +208,20 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
               </button>
             </div>
 
-            {/* CP Badge */}
-            <div className="w-full flex justify-center mt-2 z-10 relative">
-              <div className="bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200 flex items-baseline gap-1">
-                <span className="text-xs font-bold text-slate-500">CP</span>
-                <span className="text-2xl font-black text-slate-800 tracking-tighter">{selected.cp}</span>
-              </div>
+            {/* CP Arc */}
+            <div className="w-full flex justify-center mt-6 z-10 relative">
+               <div className="flex flex-col items-center relative w-full">
+                  <div className="absolute -top-4 text-center">
+                    <span className="text-white font-black tracking-widest text-2xl drop-shadow-md">
+                      CP <span className="text-3xl font-display">{selected.cp}</span>
+                    </span>
+                  </div>
+                  <svg width="280" height="140" viewBox="0 0 280 140" className="absolute top-6 opacity-80">
+                     <path d="M 20 140 A 120 120 0 0 1 260 140" fill="none" stroke="white" strokeWidth="4" />
+                     {/* Dynamic dot position based on level (simplified to roughly 50% for visual fidelity) */}
+                     <circle cx="140" cy="20" r="5" fill="white" />
+                  </svg>
+               </div>
             </div>
 
             {/* Sprite */}
@@ -230,20 +240,20 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
 
             {/* Info Sheet */}
             <div className="w-full flex flex-col items-center z-10 mt-2 flex-1 bg-white pt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] rounded-t-[2.5rem] pb-8">
-              <h2 className="text-3xl font-black text-slate-800 tracking-wide uppercase mb-2">{selectedSpecies.name}</h2>
-
-              {/* HP bar (real game shows current/max HP under the name) */}
+              {/* HP bar */}
               {(() => {
                 const hp = calculateHP(selectedSpecies.baseStats.stamina, selected.level, selected.ivs.stamina);
                 return (
-                  <div className="w-full px-12 flex flex-col items-center mb-3">
-                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="w-full px-12 flex flex-col items-center mb-1">
+                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden shadow-inner border border-slate-300/50">
                       <div className="h-full bg-[#5fd35f] rounded-full" style={{ width: '100%' }} />
                     </div>
-                    <span className="text-slate-500 font-bold text-sm mt-1.5">{hp} / {hp} HP</span>
+                    <span className="text-slate-500 font-bold text-[11px] mt-1">{hp} / {hp} HP</span>
                   </div>
                 );
               })()}
+
+              <h2 className="text-[28px] font-black text-slate-800 tracking-wide uppercase mt-1 mb-1">{selectedSpecies.name}</h2>
 
               <div className="text-slate-500 font-bold text-sm mb-2">
                 Level {selected.level} &middot; IV {ivPercent(selected.ivs)}%
@@ -364,13 +374,13 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                     disabled={!canPowerUp}
                     className="w-[80%] rounded-full py-3 mb-3 flex justify-between items-center px-6 active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
                     style={{
-                      background: 'linear-gradient(to bottom, #f6c243 0%, #e0a92c 100%)',
-                      boxShadow: '0 4px 10px rgba(224,169,44,0.4), inset 0 2px 4px rgba(255,255,255,0.4)',
-                      border: '2px solid #c99526',
+                      background: 'linear-gradient(to bottom, #26C281 0%, #1DA66C 100%)',
+                      boxShadow: '0 4px 10px rgba(38,194,129,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
+                      border: '2px solid #148A58',
                     }}
                   >
-                    <span className="text-[#5a3d00] font-black tracking-widest text-base drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]">POWER UP</span>
-                    <div className="flex items-center gap-3 text-[#5a3d00] font-black text-sm">
+                    <span className="text-white font-black tracking-widest text-base drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]">POWER UP</span>
+                    <div className="flex items-center gap-3 text-white font-black text-sm">
                       <span className="flex items-center gap-1"><StardustIcon className="w-4 h-4" />{cost.stardust.toLocaleString()}</span>
                       <span className="flex items-center gap-1"><img src={CANDY_ICON} alt="" className="w-4 h-4" onError={(e) => { e.currentTarget.style.display = 'none'; }} />{cost.candy}</span>
                     </div>

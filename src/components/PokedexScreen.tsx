@@ -105,8 +105,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 50 }}
-      className="absolute inset-0 z-[700] flex flex-col font-sans overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #d6f3ec 0%, #b7e6f0 100%)' }}
+      className="absolute inset-0 z-[700] flex flex-col font-sans overflow-hidden bg-[#f0f4f8]"
     >
       {/* Search Bar Overlay */}
       <AnimatePresence>
@@ -140,26 +139,31 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
         )}
       </AnimatePresence>
 
-      {/* Top bar: region label, caught/total pill, Pokédex icon */}
-      <div className="shrink-0 px-4 pt-12 pb-2 flex items-center justify-between relative z-10">
-        <button onClick={() => setIsPickingRegion(true)} className="text-pogo-teal font-extrabold tracking-wide text-lg flex items-center gap-1">
-          {regionLabel}
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#1b6e7e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      {/* Authentic Red POKÉDEX Header */}
+      <div className="shrink-0 bg-[#e3352f] shadow-md px-4 pt-12 pb-3 flex items-center justify-between relative z-10">
+        <button onClick={onClose} className="text-white p-1 -ml-1 active:scale-95 transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
-        <div className="bg-pogo-teal px-5 py-1.5 rounded-pogo-pill shadow-pogo-mid">
-          <span className="text-white font-display font-extrabold text-lg tracking-wide">{caughtSpeciesCount} / {POKEMON_DATABASE.length}</span>
-        </div>
-        <svg viewBox="0 0 24 24" className="w-9 h-9" aria-hidden="true">
-          <rect x="3" y="3" width="18" height="18" rx="5" fill="#ff5b6e" />
-          <circle cx="9" cy="8.5" r="2.6" fill="#fff" /><circle cx="9" cy="8.5" r="1.2" fill="#3b82f6" />
-          <rect x="13.5" y="6.5" width="6" height="2" rx="1" fill="#fff" />
-          <rect x="6" y="13.5" width="12" height="2" rx="1" fill="#fff" /><rect x="6" y="17" width="12" height="2" rx="1" fill="#fff" />
-        </svg>
+        <span className="text-white font-black tracking-widest text-lg drop-shadow-sm">POKÉDEX</span>
+        <button onClick={() => setIsSearching(true)} className="text-white p-1 -mr-1 active:scale-95 transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
       </div>
 
-      {/* 4-column grid */}
-      <div className="flex-1 overflow-y-auto px-3 pt-1 pb-44">
-        <div className="grid grid-cols-4 gap-2">
+      {/* Region / Caught Bar */}
+      <div className="shrink-0 bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between relative z-10 shadow-sm">
+        <button onClick={() => setIsPickingRegion(true)} className="text-slate-700 font-black tracking-wide text-sm flex items-center gap-1 uppercase">
+          {regionLabel}
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div className="bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+          <span className="text-slate-500 font-black text-xs tracking-wider uppercase">CAUGHT {caughtSpeciesCount}</span>
+        </div>
+      </div>
+
+      {/* 3-column grid */}
+      <div className="flex-1 overflow-y-auto px-2 pt-2 pb-44">
+        <div className="grid grid-cols-3 gap-2">
           {filteredGrid.map((species) => {
             const caught = ownedBySpecies.get(species.id);
             const shiny = isShowcaseRarity(species.rarity);
@@ -171,8 +175,8 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
               <button
                 key={species.id}
                 onClick={() => clickable && setSelectedSpeciesId(species.id)}
-                className={`aspect-[4/5] rounded-pogo-md flex flex-col items-center justify-center relative overflow-hidden border ${clickable ? 'active:scale-95 transition-transform bg-white border-white shadow-pogo-low' : 'bg-white/55 border-white/40'}`}
-                style={clickable ? { boxShadow: `0 2px 8px ${typeColor}33, inset 0 0 0 2px ${typeColor}22` } : undefined}
+                className={`aspect-[4/5] rounded-xl flex flex-col items-center justify-center relative overflow-hidden border transition-all ${clickable ? 'active:scale-95 bg-white border-slate-200 shadow-sm' : 'bg-transparent border-transparent'}`}
+                style={clickable ? undefined : undefined}
               >
                 {/* Type-colored accent wash behind a registered Pokémon */}
                 {clickable && (
@@ -188,13 +192,20 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                   {clickable ? (
                     <PokemonSprite id={species.id} name={species.name} shiny={shiny} className="max-h-full max-w-full object-contain drop-shadow relative z-10" />
                   ) : seenOnly ? (
-                    <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(0.4)]" />
+                    <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(0.3)]" />
                   ) : (
-                    <span className="text-[#a3cdda] font-display font-extrabold text-xl">?</span>
+                    <div className="w-14 h-14 rounded-full border-[3px] border-dotted border-slate-300 flex items-center justify-center bg-slate-100/50">
+                       <span className="text-slate-400 font-black text-sm tracking-widest">{species.id.toString().padStart(3, '0')}</span>
+                    </div>
                   )}
                 </div>
-                <span className={`font-display font-extrabold text-xs tracking-wider pb-1.5 ${clickable ? 'text-pogo-teal' : 'text-[#7fb4c4]'}`}>
-                  {species.id.toString().padStart(4, '0')}
+                {clickable && (
+                  <span className="font-black text-slate-500 text-[11px] tracking-wider pb-1.5 z-10 bg-white/80 px-2 rounded-full">
+                    {species.name}
+                  </span>
+                )}
+                <span className={`font-black text-[10px] tracking-widest absolute bottom-1.5 ${clickable ? 'text-slate-400 opacity-0' : 'text-slate-400'}`}>
+                  {species.id.toString().padStart(3, '0')}
                 </span>
               </button>
             );
@@ -207,39 +218,21 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
         </div>
       </div>
 
-      {/* Bottom filter pills (POKÉMON / SHINY style category bar) */}
-      <div className="absolute bottom-[88px] left-0 right-0 px-3 flex gap-2 overflow-x-auto justify-center z-20 no-scrollbar">
-        {FILTERS.map(filter => (
-          <button
-            key={filter.key}
-            onClick={() => setRarityFilter(filter.key)}
-            className={`px-4 py-1.5 rounded-pogo-pill text-xs font-extrabold tracking-wide uppercase whitespace-nowrap transition-colors ${
-              rarityFilter === filter.key ? 'bg-pogo-teal text-white shadow-pogo-mid' : 'bg-pogo-glass text-pogo-teal shadow-pogo-low border border-pogo-glass-border'
-            }`}
-          >
-            {filter.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Bottom controls: Search / Close / Regions */}
-      <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-12 z-20">
-        <button
-          onClick={() => setIsSearching(true)}
-          className="w-12 h-12 rounded-full bg-white shadow-pogo-mid flex items-center justify-center active:scale-95 transition-transform"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1b6e7e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        </button>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={onClose}
-          className="w-14 h-14 rounded-full bg-white shadow-pogo-high flex items-center justify-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1b6e7e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </motion.button>
-        <button onClick={() => setIsPickingRegion(true)} className="w-12 h-12 rounded-full bg-white shadow-pogo-mid flex flex-col items-center justify-center active:scale-95 transition-transform">
-          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#1b6e7e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="11" height="11" rx="2"/><path d="M9 15v3a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-3"/></svg>
-        </button>
+      {/* Bottom filter pills */}
+      <div className="absolute bottom-6 left-0 right-0 px-3 flex gap-2 overflow-x-auto justify-center z-20 no-scrollbar pointer-events-auto">
+        <div className="bg-white/90 backdrop-blur shadow-lg border border-slate-200 rounded-full p-1 flex items-center">
+          {FILTERS.map(filter => (
+            <button
+              key={filter.key}
+              onClick={() => setRarityFilter(filter.key)}
+              className={`px-4 py-2 rounded-full text-[10px] font-black tracking-widest uppercase whitespace-nowrap transition-colors ${
+                rarityFilter === filter.key ? 'bg-slate-800 text-white shadow-md' : 'bg-transparent text-slate-500 hover:bg-slate-100'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Region Picker Sheet */}
