@@ -9,7 +9,6 @@ import {
 } from '../data/pokemonDatabase';
 import { maxCP } from '../data/cpTable';
 import PokemonSprite from './PokemonSprite';
-import ScreenHeader from './ScreenHeader';
 import type { CandyBag, OwnedPokemon } from '../types';
 
 interface PokedexScreenProps {
@@ -55,11 +54,6 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
   }, [owned]);
 
   const caughtSpeciesCount = ownedBySpecies.size;
-  // Anything caught has necessarily been seen, so the SEEN total is the union.
-  const seenCount = useMemo(
-    () => new Set([...seen, ...ownedBySpecies.keys()]).size,
-    [seen, ownedBySpecies],
-  );
 
   const filteredGrid = useMemo(() => {
     let entries = POKEMON_DATABASE;
@@ -101,7 +95,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 50 }}
-      className="absolute inset-0 z-[700] bg-white flex flex-col font-sans overflow-hidden"
+      className="absolute inset-0 z-[700] bg-[#bfe6f2] flex flex-col font-sans overflow-hidden"
     >
       {/* Search Bar Overlay */}
       <AnimatePresence>
@@ -135,35 +129,68 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
         )}
       </AnimatePresence>
 
-      {/* Unified Pokémon GO header */}
-      <ScreenHeader title="POKÉDEX" />
+      {/* Top bar: region label, caught/total pill, Pokédex icon */}
+      <div className="shrink-0 px-4 pt-12 pb-2 flex items-center justify-between relative z-10">
+        <span className="text-[#1f6f6b] font-black tracking-wide text-lg">NATIONAL</span>
+        <div className="bg-[#2a9ab5] px-5 py-1.5 rounded-full shadow-md">
+          <span className="text-white font-black text-lg tracking-wide">{caughtSpeciesCount} / {POKEMON_DATABASE.length}</span>
+        </div>
+        <svg viewBox="0 0 24 24" className="w-9 h-9" fill="none" stroke="#1f6f6b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="5" y="3" width="14" height="18" rx="2" /><circle cx="9" cy="8" r="2.2" /><path d="M14 7h3M14 10h3M8 14h8M8 17h8" />
+        </svg>
+      </div>
 
-      {/* Stats Bar */}
-      <div className="flex justify-center gap-10 py-3 bg-white border-b border-slate-200 shadow-sm relative z-10 shrink-0">
-        <div className="flex flex-col items-center">
-          <span className="text-slate-500 text-xs font-bold tracking-wider">SEEN</span>
-          <span className="text-slate-800 text-2xl font-black">{seenCount}</span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-[#1b6e7e] text-xs font-bold tracking-wider">CAUGHT</span>
-          <span className="text-slate-800 text-2xl font-black">{caughtSpeciesCount}</span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-slate-500 text-xs font-bold tracking-wider">SPECIES</span>
-          <span className="text-slate-800 text-2xl font-black">{POKEMON_DATABASE.length}</span>
+      {/* 4-column grid */}
+      <div className="flex-1 overflow-y-auto px-3 pt-1 pb-44">
+        <div className="grid grid-cols-4 gap-2">
+          {filteredGrid.map((species) => {
+            const caught = ownedBySpecies.get(species.id);
+            const shiny = isShowcaseRarity(species.rarity);
+            const seenOnly = !caught && !shiny && seenSet.has(species.id);
+            const clickable = !!caught || shiny;
+
+            return (
+              <button
+                key={species.id}
+                onClick={() => clickable && setSelectedSpeciesId(species.id)}
+                className={`aspect-[4/5] rounded-2xl flex flex-col items-center justify-center relative overflow-hidden ${clickable ? 'active:scale-95 transition-transform' : ''} ${shiny ? 'bg-amber-50 ring-1 ring-amber-300' : 'bg-[#d6eef8]'}`}
+              >
+                {shiny && <span className="absolute top-1 right-1.5 text-xs" title="Shiny">✨</span>}
+                {caught && caught.length > 1 && (
+                  <span className="absolute top-1 left-1.5 bg-[#2a7a8c] text-white font-bold text-[9px] px-1.5 rounded-full">x{caught.length}</span>
+                )}
+
+                <div className="flex-1 w-full flex items-center justify-center p-2">
+                  {clickable ? (
+                    <PokemonSprite id={species.id} name={species.name} shiny={shiny} className="max-h-full max-w-full object-contain drop-shadow" />
+                  ) : seenOnly ? (
+                    <PokemonSprite id={species.id} name={species.name} className="max-h-full max-w-full object-contain [filter:brightness(0)_opacity(0.45)]" />
+                  ) : (
+                    <span className="text-[#a3cdda] font-black text-xl">?</span>
+                  )}
+                </div>
+                <span className="text-[#2a7a8c] font-black text-xs tracking-wider pb-1.5">
+                  {species.id.toString().padStart(4, '0')}
+                </span>
+              </button>
+            );
+          })}
+          {filteredGrid.length === 0 && (
+            <div className="col-span-4 py-10 text-center text-[#3a7a8c] font-medium">
+              No Pokémon found matching "{searchQuery}"
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Rarity Filter Chips */}
-      <div className="flex gap-2 px-3 py-2 bg-white border-b-2 border-slate-200 shadow-sm relative z-10 shrink-0 overflow-x-auto">
+      {/* Bottom filter pills (POKÉMON / SHINY style category bar) */}
+      <div className="absolute bottom-[88px] left-0 right-0 px-3 flex gap-2 overflow-x-auto justify-center z-20 no-scrollbar">
         {FILTERS.map(filter => (
           <button
             key={filter.key}
             onClick={() => setRarityFilter(filter.key)}
-            className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase whitespace-nowrap transition-colors ${
-              rarityFilter === filter.key
-                ? 'bg-[#1b6e7e] text-white shadow-sm'
-                : 'bg-slate-100 text-slate-500'
+            className={`px-4 py-1.5 rounded-full text-xs font-black tracking-wide uppercase whitespace-nowrap shadow-sm transition-colors ${
+              rarityFilter === filter.key ? 'bg-[#2a9ab5] text-white' : 'bg-white/85 text-[#3a7a8c]'
             }`}
           >
             {filter.label}
@@ -171,92 +198,24 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
         ))}
       </div>
 
-      {/* Grid Container */}
-      <div className="flex-1 overflow-y-auto px-2 pt-2 pb-24 bg-[#f8fafc]">
-        <div className="grid grid-cols-3 gap-2">
-          {filteredGrid.map((species) => {
-            const caught = ownedBySpecies.get(species.id);
-            const shiny = isShowcaseRarity(species.rarity);
-            const seenOnly = !caught && !shiny && seenSet.has(species.id);
-            const clickable = !!caught || shiny;
-            const visible = clickable || seenOnly;
-
-            return (
-              <div
-                key={species.id}
-                onClick={() => clickable && setSelectedSpeciesId(species.id)}
-                style={clickable ? { background: `linear-gradient(to bottom, ${TYPE_COLORS[species.types[0]]}26 0%, #ffffff 72%)` } : undefined}
-                className={`aspect-square ${clickable ? '' : 'bg-white'} border rounded-lg shadow-sm flex flex-col items-center justify-center relative overflow-hidden ${clickable ? 'cursor-pointer active:scale-95 transition-transform' : ''} ${shiny ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-200'}`}
-              >
-                <span className="absolute top-1 left-1.5 text-slate-400 font-bold text-[10px]">
-                  #{species.id.toString().padStart(3, '0')}
-                </span>
-                <div className="absolute top-1 right-1.5 flex items-center gap-1">
-                  {shiny && <span title="Shiny">✨</span>}
-                  {caught && caught.length > 1 && (
-                    <span className="bg-slate-700 text-white font-bold text-[10px] px-1.5 rounded-full">
-                      x{caught.length}
-                    </span>
-                  )}
-                </div>
-
-                {clickable ? (
-                  <div className="w-full h-full flex items-center justify-center p-3 mt-2">
-                    <PokemonSprite
-                      id={species.id}
-                      name={species.name}
-                      shiny={shiny}
-                      className="w-full h-full object-contain drop-shadow-md"
-                    />
-                  </div>
-                ) : seenOnly ? (
-                  // "Seen" but not caught: a dark silhouette, like the real Pokédex.
-                  <div className="w-full h-full flex items-center justify-center p-3 mt-2">
-                    <PokemonSprite
-                      id={species.id}
-                      name={species.name}
-                      className="w-full h-full object-contain opacity-60 [filter:brightness(0)_opacity(0.55)]"
-                    />
-                  </div>
-                ) : (
-                  <span className="text-slate-300 font-black text-2xl mt-2">?</span>
-                )}
-                {visible && seenOnly && (
-                  <span className="absolute bottom-1 text-[8px] font-bold text-slate-400 tracking-wider uppercase">Seen</span>
-                )}
-              </div>
-            );
-          })}
-          {filteredGrid.length === 0 && (
-            <div className="col-span-3 py-10 text-center text-slate-500 font-medium">
-              No Pokémon found matching "{searchQuery}"
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Floating Search Button */}
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setIsSearching(true)}
-        className="absolute bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-b from-[#1b6e7e] to-[#12515e] shadow-lg border-[3px] border-white flex items-center justify-center z-20"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      </motion.button>
-
-      {/* Authentic Close Button */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+      {/* Bottom controls: Search / Close / Regions */}
+      <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-12 z-20">
+        <button
+          onClick={() => setIsSearching(true)}
+          className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a7a8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={onClose}
-          className="w-[72px] h-[72px] flex items-center justify-center bg-transparent border-none"
+          className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center"
         >
-           <img
-             src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Menu%20Icons/btn_close_normal.png"
-             alt="Close"
-             className="w-full h-full object-contain drop-shadow-lg"
-           />
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a7a8c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </motion.button>
+        <button className="w-12 h-12 rounded-full bg-white shadow-md flex flex-col items-center justify-center">
+          <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="#2a7a8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>
+        </button>
       </div>
 
       {/* Authentic Flat Detail View */}

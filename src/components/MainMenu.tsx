@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Newspaper } from 'lucide-react';
+import { Settings, Ticket, ShoppingBag, Backpack, Camera, Megaphone, X } from 'lucide-react';
 
 interface MainMenuProps {
   onClose: () => void;
@@ -9,112 +9,122 @@ interface MainMenuProps {
   onOpenStorage: () => void;
 }
 
+const TEAL = '#1f6f6b';
+
+// Pokédex device outline (real menu uses the red Pokédex device icon).
+const PokedexIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke={TEAL} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="5" y="3" width="14" height="18" rx="2" />
+    <circle cx="9" cy="8" r="2.2" />
+    <path d="M14 7h3M14 10h3M8 14h8M8 17h8" />
+  </svg>
+);
+
+// GO Battle League triangle.
+const BattleIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke={TEAL} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 6h16l-8 13z" />
+    <circle cx="12" cy="10.5" r="1.6" fill={TEAL} stroke="none" />
+  </svg>
+);
+
+// Pikachu-head silhouette outline for the Pokémon button.
+const PokemonIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-8 h-8" fill="none" stroke={TEAL} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7 3l3 6M17 3l-3 6" />
+    <path d="M6 13a6 6 0 0 1 12 0c0 4-3 7-6 7s-6-3-6-7z" />
+    <circle cx="9.5" cy="13.5" r="0.8" fill={TEAL} stroke="none" />
+    <circle cx="14.5" cy="13.5" r="0.8" fill={TEAL} stroke="none" />
+  </svg>
+);
+
+interface MenuButtonProps {
+  label: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  notify?: boolean;
+  delay: number;
+}
+
+const MenuButton: React.FC<MenuButtonProps> = ({ label, icon, onClick, notify, delay }) => (
+  <motion.button
+    initial={{ scale: 0 }}
+    animate={{ scale: 1 }}
+    transition={{ delay, type: 'spring', damping: 14 }}
+    onClick={onClick}
+    className="flex flex-col items-center gap-2"
+  >
+    <span className="text-[#1f6f6b] font-black text-sm tracking-wide">{label}</span>
+    <div className="relative w-[72px] h-[72px] rounded-full bg-white flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.12)] ring-2 ring-[#cdeccd]">
+      {icon}
+      {notify && <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#ff5b6e] border-2 border-white" />}
+    </div>
+  </motion.button>
+);
+
 const MainMenu: React.FC<MainMenuProps> = ({ onClose, onOpenPokedex, onOpenInventory, onOpenStorage }) => {
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: '100%' }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: '100%' }}
-      transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="absolute inset-0 z-[600] flex flex-col justify-end"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="absolute inset-0 z-[600] flex flex-col"
+      style={{ background: 'linear-gradient(135deg, #f2faea 0%, #d6f0bd 45%, #a9e08a 100%)' }}
     >
-      {/* Exact Pokemon Go teal gradient overlay */}
-      <div 
-        className="absolute inset-0 backdrop-blur-sm" 
-        style={{ background: 'linear-gradient(to top, rgba(1, 41, 57, 0.95) 0%, rgba(1, 41, 57, 0.85) 50%, rgba(255, 255, 255, 0.5) 100%)' }}
-      />
-
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-end pb-32">
-        
-        {/* Top Row: News & Settings */}
-        <div className="absolute top-12 w-full px-6 flex justify-between">
-          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1 }} className="flex flex-col items-center gap-1">
-            <div className="w-14 h-14 rounded-full bg-[#f97316] text-white flex items-center justify-center shadow-lg border-[3px] border-white">
-               <Newspaper size={24} />
-            </div>
-            <span className="text-white font-bold text-xs tracking-wide drop-shadow-md">NEWS</span>
-          </motion.button>
-
-          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1 }} className="flex flex-col items-center gap-1">
-            <div className="w-14 h-14 rounded-full bg-[#475569] text-white flex items-center justify-center shadow-lg border-[3px] border-white">
-               <Settings size={24} />
-            </div>
-            <span className="text-white font-bold text-xs tracking-wide drop-shadow-md">SETTINGS</span>
-          </motion.button>
-        </div>
-
-        {/* Main 5-Button Grid (Exact PoGo Layout) */}
-        
-        {/* Center: SHOP */}
-        <div className="relative w-full h-[250px] flex items-center justify-center">
-          
-          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }} className="absolute z-20 flex flex-col items-center gap-1 -translate-y-12">
-             <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.5)] border-[4px] border-white overflow-hidden bg-white">
-                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Item/Bag_Upgrades_1.png" alt="Shop" className="w-[80%] h-[80%] object-contain" />
-             </div>
-             <span className="text-white font-black text-sm tracking-wide drop-shadow-md mt-1 font-sans">SHOP</span>
-          </motion.button>
-
-          {/* Left: POKEDEX */}
-          <motion.button 
-            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.25 }} 
-            onClick={onOpenPokedex}
-            className="absolute left-8 -translate-y-2 flex flex-col items-center gap-1"
-          >
-             <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.4)] border-[3px] border-white overflow-hidden bg-white">
-                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Pokedex/pokedex_icon.png" alt="Pokedex" className="w-[70%] h-[70%] object-contain" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-radar.png" }} />
-             </div>
-             <span className="text-white font-black text-xs tracking-wide drop-shadow-md mt-1 font-sans">POKÉDEX</span>
-          </motion.button>
-
-          {/* Right: POKEMON */}
-          <motion.button
-            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.25 }}
-            onClick={onOpenStorage}
-            className="absolute right-8 -translate-y-2 flex flex-col items-center gap-1"
-          >
-             <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.4)] border-[3px] border-white relative overflow-hidden">
-                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Items/Item_0001.png" alt="Pokemon" className="w-[80%] h-[80%] object-contain drop-shadow-md" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" }} />
-             </div>
-             <span className="text-white font-black text-xs tracking-wide drop-shadow-md mt-1 font-sans">POKÉMON</span>
-          </motion.button>
-
-          {/* Bottom Left: ITEMS */}
-          <motion.button 
-            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3 }} 
-            onClick={onOpenInventory}
-            className="absolute left-16 translate-y-20 flex flex-col items-center gap-1"
-          >
-             <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.4)] border-[3px] border-white overflow-hidden bg-white">
-                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Item/Bag_01.png" alt="Items" className="w-[75%] h-[75%] object-contain" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png" }} />
-             </div>
-             <span className="text-white font-black text-xs tracking-wide drop-shadow-md mt-1 font-sans">ITEMS</span>
-          </motion.button>
-
-          {/* Bottom Right: BATTLE */}
-          <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3 }} className="absolute right-16 translate-y-20 flex flex-col items-center gap-1">
-             <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.4)] border-[3px] border-white bg-white">
-                <img src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Combat/pvp_icon.png" alt="Battle" className="w-[80%] h-[80%] object-contain" onError={(e) => { e.currentTarget.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/vs-seeker.png" }} />
-             </div>
-             <span className="text-white font-black text-xs tracking-wide drop-shadow-md mt-1 font-sans">BATTLE</span>
-          </motion.button>
-        </div>
-
+      {/* Top-right: Settings / Events */}
+      <div className="absolute top-12 right-5 flex flex-col gap-4 items-end">
+        <button className="flex items-center gap-2.5">
+          <span className="text-[#1f6f6b] font-black text-sm tracking-wide">SETTINGS</span>
+          <Settings className="w-7 h-7" stroke={TEAL} strokeWidth={1.8} />
+        </button>
+        <button className="flex items-center gap-2.5">
+          <span className="text-[#1f6f6b] font-black text-sm tracking-wide">EVENTS</span>
+          <Ticket className="w-7 h-7" stroke={TEAL} strokeWidth={1.8} />
+        </button>
       </div>
 
-      {/* Bottom Close Button (Replacing the Pokeball) */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20">
+      {/* Main 5-button cluster */}
+      <div className="flex-1 flex flex-col justify-end pb-28">
+        <div className="relative h-[300px]">
+          {/* Top row */}
+          <div className="absolute left-10 top-0">
+            <MenuButton label="POKÉDEX" icon={<PokedexIcon />} onClick={onOpenPokedex} delay={0.1} />
+          </div>
+          <div className="absolute right-10 top-0">
+            <MenuButton label="BATTLE" icon={<BattleIcon />} notify delay={0.15} />
+          </div>
+          {/* Center: Shop */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-[110px]">
+            <MenuButton label="SHOP" icon={<ShoppingBag className="w-8 h-8" stroke={TEAL} strokeWidth={1.8} />} delay={0.2} />
+          </div>
+          {/* Bottom row */}
+          <div className="absolute left-10 top-[215px]">
+            <MenuButton label="POKÉMON" icon={<PokemonIcon />} onClick={onOpenStorage} delay={0.25} />
+          </div>
+          <div className="absolute right-10 top-[215px]">
+            <MenuButton label="ITEMS" icon={<Backpack className="w-8 h-8" stroke={TEAL} strokeWidth={1.8} />} onClick={onOpenInventory} delay={0.3} />
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom row: camera / close / megaphone */}
+      <div className="absolute bottom-10 left-0 right-0 flex items-center justify-center gap-14">
+        <button className="relative">
+          <Camera className="w-8 h-8" stroke={TEAL} strokeWidth={1.8} />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#ff5b6e]" />
+        </button>
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={onClose}
-          className="w-[72px] h-[72px] flex items-center justify-center bg-transparent border-none"
+          className="w-14 h-14 rounded-full bg-white/70 ring-2 ring-[#bfe0bf] flex items-center justify-center shadow-md"
         >
-           <img 
-             src="https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Images/Menu%20Icons/btn_close_normal.png" 
-             alt="Close Menu" 
-             className="w-full h-full object-contain drop-shadow-lg"
-           />
+          <X className="w-7 h-7" stroke={TEAL} strokeWidth={2.2} />
         </motion.button>
+        <button className="relative">
+          <Megaphone className="w-8 h-8" stroke={TEAL} strokeWidth={1.8} />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#ff5b6e]" />
+        </button>
       </div>
     </motion.div>
   );
