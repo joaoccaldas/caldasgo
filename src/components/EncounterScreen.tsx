@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { SpawnedPokemon, OwnedPokemon } from '../types';
-import { getPokemonImage } from '../data/pokemonDatabase';
+import PokemonSprite from './PokemonSprite';
 import { useInventory } from '../hooks/useInventory';
 
 // XP awarded for catching a Pokémon, and a bonus the first time a species is caught.
@@ -142,13 +142,17 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
               {/* Fake Ground Shadow */}
               <div className="absolute bottom-2 w-40 h-10 bg-black/30 rounded-[100%] blur-md"></div>
 
-              <motion.img
+              <motion.div
                 animate={{ translateY: [-10, 10] }}
                 transition={{ repeat: Infinity, duration: 2, repeatType: "mirror", ease: "easeInOut" }}
-                src={getPokemonImage(spawn.speciesId)}
-                alt={spawn.species.name}
-                className="w-[120%] h-[120%] object-contain drop-shadow-2xl z-10"
-              />
+                className="w-[120%] h-[120%] z-10"
+              >
+                <PokemonSprite
+                  id={spawn.speciesId}
+                  name={spawn.species.name}
+                  className="w-full h-full object-contain drop-shadow-2xl"
+                />
+              </motion.div>
 
               {/* The Catch Ring! */}
               {!catching && (

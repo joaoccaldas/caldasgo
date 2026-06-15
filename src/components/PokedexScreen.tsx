@@ -3,12 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   POKEMON_DATABASE,
   getSpecies,
-  getPokemonImage,
-  getShinyPokemonImage,
   isShowcaseRarity,
   TYPE_COLORS,
 } from '../data/pokemonDatabase';
 import { maxCP } from '../data/cpTable';
+import PokemonSprite from './PokemonSprite';
 import type { CandyBag, OwnedPokemon } from '../types';
 
 interface PokedexScreenProps {
@@ -195,9 +194,10 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
 
                 {visible ? (
                   <div className="w-full h-full flex items-center justify-center p-3 mt-2">
-                    <img
-                      src={shiny ? getShinyPokemonImage(species.id) : getPokemonImage(species.id)}
-                      alt={species.name}
+                    <PokemonSprite
+                      id={species.id}
+                      name={species.name}
+                      shiny={shiny}
                       className="w-full h-full object-contain drop-shadow-md"
                     />
                   </div>
@@ -279,9 +279,10 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                transition={{ repeat: Infinity, duration: 4, repeatType: "mirror", ease: "easeInOut" }}
                className="w-full h-[30vh] flex flex-col items-center justify-center relative z-10"
              >
-               <img
-                 src={selectedShiny ? getShinyPokemonImage(selectedSpecies.id) : getPokemonImage(selectedSpecies.id)}
-                 alt={selectedSpecies.name}
+               <PokemonSprite
+                 id={selectedSpecies.id}
+                 name={selectedSpecies.name}
+                 shiny={selectedShiny}
                  className="w-[70%] h-full object-contain drop-shadow-2xl"
                />
              </motion.div>

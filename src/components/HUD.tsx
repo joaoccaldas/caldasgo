@@ -15,7 +15,12 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
         <div className="relative">
           <div className="w-16 h-16 rounded-full border-[3px] border-white shadow-[0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden bg-slate-800">
             {/* Avatar Image (Pikachu placeholder for trainer face) */}
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt="Avatar" className="w-[120%] h-[120%] object-cover -ml-1 -mt-1" />
+            <img
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+              alt="Avatar"
+              className="w-[120%] h-[120%] object-cover -ml-1 -mt-1"
+              onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'; }}
+            />
           </div>
           {/* Level Badge */}
           <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#3b82f6] text-white text-[11px] font-black px-3 py-[2px] rounded-full border border-white shadow-md z-10 whitespace-nowrap tracking-wide">
@@ -55,7 +60,12 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
         <div className="flex gap-3 pointer-events-auto">
           <div className="relative">
             <div className="w-16 h-16 rounded-full border-2 border-white shadow-[0_4px_12px_rgba(0,0,0,0.4)] bg-[#a3e635] flex items-center justify-center overflow-hidden">
-               <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="Buddy" className="w-[120%] h-[120%] object-contain" />
+               <img
+                 src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"
+                 alt="Buddy"
+                 className="w-[120%] h-[120%] object-contain"
+                 onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'; }}
+               />
             </div>
             {/* Buddy Mood */}
             <div className="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow border border-slate-200">
@@ -87,9 +97,9 @@ const HUD: React.FC<HUDProps> = ({ onOpenMenu, playerLevel, xpProgress }) => {
         {/* Bottom Right: Nearby Radar */}
         <div className="pointer-events-auto mb-1">
           <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg border border-slate-200 pl-3 pr-2 py-1.5 flex items-center gap-1 cursor-pointer hover:bg-white transition-colors relative overflow-hidden">
-             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="nearby" /></div>
-             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="nearby" /></div>
-             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="nearby" /></div>
+             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" alt="nearby" onError={(e) => { e.currentTarget.style.display = 'none'; }} /></div>
+             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="nearby" onError={(e) => { e.currentTarget.style.display = 'none'; }} /></div>
+             <div className="w-7 h-7 opacity-70 grayscale"><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="nearby" onError={(e) => { e.currentTarget.style.display = 'none'; }} /></div>
              
              {/* Tiny green radar sweep effect overlay */}
              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#a3e635]/20 to-transparent w-[200%] animate-[slide_3s_infinite]" />

@@ -90,11 +90,12 @@ const MapScreen: React.FC = () => {
 
           {/* Render Spawns */}
           {spawnedPokemon.map((spawn: SpawnedPokemon) => {
+            const fallbackImg = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${spawn.speciesId}.png`;
             const icon = L.divIcon({
               html: `
                 <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4">
                   <div class="absolute inset-0 rounded-full bg-white/40 animate-ping opacity-70 border-[2px] border-white"></div>
-                  <img src="${getPokemonImage(spawn.speciesId)}" alt="${spawn.species.name}" class="w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" />
+                  <img src="${getPokemonImage(spawn.speciesId)}" alt="${spawn.species.name}" class="w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" onerror="this.onerror=null;this.src='${fallbackImg}'" />
                 </div>
               `,
               className: 'custom-pokemon-icon',
