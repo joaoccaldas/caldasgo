@@ -7,17 +7,14 @@ import {
   getTypeIcon,
   TYPE_COLORS,
 } from '../data/pokemonDatabase';
-import { maxCP } from '../data/cpTable';
 import PokemonSprite from './PokemonSprite';
 import { typeBackdrop } from '../theme';
-import type { CandyBag, OwnedPokemon } from '../types';
+import type { OwnedPokemon } from '../types';
 
 interface PokedexScreenProps {
   onClose: () => void;
   owned: OwnedPokemon[];
-  candies: CandyBag;
   seen: number[];
-  onEvolve: (uid: string, toSpeciesId: number, candyCost: number) => Promise<boolean>;
 }
 
 type RarityFilter = 'all' | 'caught' | 'legendary' | 'mythical';
@@ -29,10 +26,7 @@ const FILTERS: { key: RarityFilter; label: string }[] = [
   { key: 'mythical', label: 'Mythical' },
 ];
 
-const ivPercent = (ivs: OwnedPokemon['ivs']) =>
-  Math.round(((ivs.attack + ivs.defense + ivs.stamina) / 45) * 100);
-
-const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, seen, onEvolve }) => {
+const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, seen }) => {
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<number | null>(null);
   const seenSet = useMemo(() => new Set(seen), [seen]);
 
@@ -89,16 +83,7 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
 
   const selectedSpecies = selectedSpeciesId !== null ? getSpecies(selectedSpeciesId) : undefined;
   const selectedOwned = selectedSpeciesId !== null ? ownedBySpecies.get(selectedSpeciesId) : undefined;
-  const bestOwned = selectedOwned?.[0];
   const selectedShiny = selectedOwned?.some(p => p.isShiny) ?? false;
-
-  const handleEvolve = async (toSpeciesId: number, candyCost: number) => {
-    if (!bestOwned) return;
-    const success = await onEvolve(bestOwned.uid, toSpeciesId, candyCost);
-    if (success) {
-      setSelectedSpeciesId(toSpeciesId);
-    }
-  };
 
   return (
     <motion.div
@@ -312,16 +297,6 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                <span className="text-slate-400 font-black text-sm tracking-widest">#{selectedSpecies.id.toString().padStart(3, '0')}</span>
              </div>
 
-             {/* CP Badge */}
-             <div className="w-full flex justify-center mt-2 z-10 relative">
-               <div className="bg-white px-5 py-1 rounded-pogo-pill shadow-pogo-mid border border-slate-100 z-10 flex items-baseline gap-1.5">
-                 <span className="text-xs font-extrabold text-slate-500">{bestOwned ? 'CP' : 'MAX CP'}</span>
-                 <span className="text-2xl font-display font-extrabold text-slate-800">
-                   {bestOwned ? bestOwned.cp : maxCP(selectedSpecies.baseStats)}
-                 </span>
-               </div>
-             </div>
-
              {/* Render */}
              <motion.div
                animate={{ y: [-5, 5] }}
@@ -345,40 +320,9 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                  </div>
                )}
 
-               <h2 className="text-3xl font-black text-slate-800 tracking-wide uppercase mb-1">
+               <h2 className="text-3xl font-black text-slate-800 tracking-wide uppercase mb-6">
                  {selectedSpecies.name}
                </h2>
-
-               {bestOwned ? (
-                 <div className="text-slate-500 font-bold text-sm mb-4">
-                   Level {bestOwned.level} &middot; IV {ivPercent(bestOwned.ivs)}%
-                   {selectedOwned && selectedOwned.length > 1 && (
-                     <span> &middot; Best of {selectedOwned.length} caught</span>
-                   )}
-                 </div>
-               ) : (
-                 <div className="text-slate-400 font-bold text-sm mb-4 text-center px-8">
-                   Not caught yet — keep exploring to find one in the wild!
-                 </div>
-               )}
-
-               {/* IV breakdown */}
-               {bestOwned && (
-                 <div className="w-full px-8 flex justify-center gap-8 mb-6 text-center">
-                   <div className="flex flex-col items-center">
-                     <span className="text-lg font-black text-slate-800">{bestOwned.ivs.attack}/15</span>
-                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">ATTACK</span>
-                   </div>
-                   <div className="flex flex-col items-center">
-                     <span className="text-lg font-black text-slate-800">{bestOwned.ivs.defense}/15</span>
-                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">DEFENSE</span>
-                   </div>
-                   <div className="flex flex-col items-center">
-                     <span className="text-lg font-black text-slate-800">{bestOwned.ivs.stamina}/15</span>
-                     <span className="text-[10px] font-bold text-slate-400 tracking-wider">STAMINA</span>
-                   </div>
-                 </div>
-               )}
 
                {/* Weight / Types / Height */}
                <div className="w-full px-8 flex justify-between items-center mb-6">
@@ -414,49 +358,27 @@ const PokedexScreen: React.FC<PokedexScreenProps> = ({ onClose, owned, candies, 
                  </div>
                </div>
 
-               {/* Candy & Evolve - only relevant once you've actually caught one */}
-               {bestOwned && (
-                 <>
-                   <div className="w-full px-8 flex justify-center gap-3 mb-6 items-center">
-                     <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-8 h-8 drop-shadow-sm" />
-                     <span className="font-black text-slate-800 text-xl">{candies[selectedSpecies.family] || 0}</span>
-                     <span className="text-slate-400 font-bold text-xs tracking-wider uppercase">{selectedSpecies.family} CANDY</span>
+               {/* Authentic Seen / Caught Counters */}
+               <div className="w-full px-8 mt-6">
+                 <div className="bg-slate-50/80 border border-slate-100 rounded-2xl p-4 flex justify-around shadow-sm">
+                   <div className="flex flex-col items-center gap-0.5">
+                     <span className="text-2xl font-display font-extrabold text-slate-800">{selectedOwned ? selectedOwned.length : 0}</span>
+                     <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Caught</span>
                    </div>
-
-                   {selectedSpecies.evolutions.length > 0 && (
-                     <div className="w-full px-8 flex flex-col gap-3">
-                       {selectedSpecies.evolutions.map(evo => {
-                         const targetSpecies = getSpecies(evo.toId);
-                         if (!targetSpecies) return null;
-                         const candyCount = candies[selectedSpecies.family] || 0;
-                         const canEvolve = candyCount >= evo.candyCost;
-                         return (
-                           <button
-                             key={evo.toId}
-                             onClick={() => handleEvolve(evo.toId, evo.candyCost)}
-                             disabled={!canEvolve}
-                             className="w-full rounded-full py-3 flex justify-between items-center px-6 active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
-                             style={{
-                               background: 'linear-gradient(to bottom, #26C281 0%, #1DA66C 100%)',
-                               boxShadow: '0 4px 10px rgba(38,194,129,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
-                               border: '2px solid #148A58'
-                             }}
-                           >
-                             <span className="text-white font-black tracking-widest text-base drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] font-sans">
-                               EVOLVE TO {targetSpecies.name.toUpperCase()}
-                               {evo.item && <span className="block text-[10px] font-bold normal-case opacity-80">Requires {evo.item}</span>}
-                             </span>
-                             <div className="flex items-center gap-1 text-white font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-lg">
-                               <img src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Items/pokemon_details_candy.png" alt="Candy" className="w-5 h-5 drop-shadow-md" />
-                               <span>{evo.candyCost}</span>
-                             </div>
-                           </button>
-                         );
-                       })}
-                     </div>
-                   )}
-                 </>
-               )}
+                   <div className="w-px bg-slate-200"></div>
+                   <div className="flex flex-col items-center gap-0.5">
+                     <span className="text-2xl font-display font-extrabold text-slate-800">{selectedOwned ? selectedOwned.length : (seenSet.has(selectedSpecies.id) ? 1 : 0)}</span>
+                     <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Seen</span>
+                   </div>
+                 </div>
+               </div>
+               
+               {/* Flavor Text / Entry */}
+               <div className="w-full px-8 mt-6 pb-12">
+                 <p className="text-[15px] text-slate-600 font-medium leading-relaxed">
+                   A fascinating species of Pokémon originally discovered in the {REGIONS.find(r => r.generation === selectedSpecies.generation)?.name || 'Kanto'} region.
+                 </p>
+               </div>
              </div>
           </motion.div>
         )}

@@ -78,11 +78,24 @@ const MapScreen: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-[100dvh] relative overflow-hidden bg-sky-200">
+    <div className="w-full h-[100dvh] relative overflow-hidden bg-gradient-to-b from-sky-300 via-sky-100 to-white">
+      {/* Skybox horizon line to hide the map edge */}
+      <div className="absolute top-0 left-0 w-full h-[35vh] bg-gradient-to-b from-sky-400/80 to-transparent z-[1] pointer-events-none" />
 
       {/* The 100% Authentic PoGo Map CSS Filter wrapper */}
       {/* We apply sepia/hue-rotate to force Google/Carto maps into the vivid PoGo green/blue aesthetic */}
-      <div className="absolute inset-0 z-0 pogo-map-filter">
+      <div 
+        className="absolute z-0 pogo-map-filter"
+        style={{
+          // Force 3D pitch. We scale up the map massively so the edges don't show when tilted back.
+          width: '200%',
+          height: '200%',
+          left: '-50%',
+          top: '-30%',
+          transform: 'perspective(800px) rotateX(60deg) scale(1.2)',
+          transformOrigin: '50% 50%',
+        }}
+      >
         <MapContainer
           center={[location.lat, location.lng]}
           zoom={18}
@@ -104,7 +117,7 @@ const MapScreen: React.FC = () => {
             const spinnable = isSpinable(stop);
             const stopIcon = L.divIcon({
               html: `
-                <div class="relative flex flex-col items-center -ml-6 -mt-[60px] cursor-pointer hover:scale-105 transition-transform">
+                <div class="relative flex flex-col items-center -ml-6 -mt-[60px] cursor-pointer hover:scale-105 transition-transform origin-bottom" style="transform: rotateX(-60deg) scale(1.5) translateY(10px);">
                   <img
                     src="https://cdn.jsdelivr.net/gh/PokeMiners/pogo_assets@master/Images/Pokestops%20and%20Gyms/pokestop_near.png"
                     alt="PokéStop"
@@ -133,7 +146,7 @@ const MapScreen: React.FC = () => {
             const basic = `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/${spawn.speciesId}.png`;
             const icon = L.divIcon({
               html: `
-                <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4">
+                <div class="relative w-16 h-16 flex items-center justify-center hover:scale-110 transition-transform cursor-pointer -ml-4 -mt-4 origin-bottom" style="transform: rotateX(-60deg) scale(1.5) translateY(10px);">
                   <div class="pulse-ring"></div>
                   <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-black/30 rounded-[100%] blur-[1px] z-0"></div>
                   <img src="${pogo}" alt="${spawn.species.name}" class="relative w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" onerror="this.onerror=function(){this.onerror=null;this.src='${basic}'};this.src='${artwork}'" />
@@ -152,6 +165,29 @@ const MapScreen: React.FC = () => {
               />
             );
           })}
+
+          {/* Trainer Avatar Standee on the map */}
+          <Marker
+            position={[location.lat, location.lng]}
+            interactive={false}
+            icon={L.divIcon({
+              html: `
+                <div class="relative flex flex-col items-center origin-bottom" style="transform: rotateX(-60deg) scale(1.5) translateY(10px);">
+                  <div class="absolute bottom-1 w-12 h-4 bg-black/30 rounded-[100%] blur-[2px] z-0"></div>
+                  <img
+                    src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
+                    alt="You"
+                    class="relative w-16 h-16 object-contain drop-shadow-[0_5px_8px_rgba(0,0,0,0.4)] z-10"
+                    onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/25.png';"
+                  />
+                  <!-- Authentic radar pulse under trainer -->
+                  <div class="absolute top-1/2 left-1/2 w-[120px] h-[120px] -ml-[60px] -mt-[60px] rounded-full border-[3px] border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.5)] animate-[pulse-ring_3s_infinite_cubic-bezier(0.215,0.61,0.355,1)] pointer-events-none z-0"></div>
+                </div>
+              `,
+              className: 'custom-trainer-icon',
+              iconSize: [64, 64],
+            })}
+          />
         </MapContainer>
 
         {/* A soft green wash unifies the map into Pokémon GO's signature
@@ -169,29 +205,18 @@ const MapScreen: React.FC = () => {
         .pogo-map-filter .leaflet-tile-pane {
           filter: sepia(55%) hue-rotate(52deg) saturate(1.5) brightness(1.04) contrast(1.03);
         }
+        @keyframes pulse-ring {
+          0% { transform: scale(0.33); opacity: 1; }
+          80%, 100% { transform: scale(1); opacity: 0; }
+        }
       `}</style>
 
-      {/* The Player Avatar in the center of the screen (Fixed) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none z-10 flex items-center justify-center">
-         {/* GPS accuracy ring, pulsing like the real game */}
-         <div className="absolute w-20 h-20 rounded-full bg-[#4cc3ff]/20 border-2 border-[#4cc3ff]/40 animate-ping" />
-         <div className="absolute w-20 h-20 rounded-full bg-[#4cc3ff]/10 border border-[#4cc3ff]/30" />
-         {/* Ground shadow */}
-         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-black/30 rounded-[100%] blur-sm" />
-         {/* Trainer standee */}
-         <img
-           src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/other/official-artwork/25.png"
-           alt="You"
-           className="relative w-16 h-16 object-contain drop-shadow-[0_5px_8px_rgba(0,0,0,0.4)]"
-           onError={(e) => { e.currentTarget.src = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/25.png'; }}
-         />
-         {/* Fake GPS Mock Indicator */}
-         {isMock && (
-           <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-slate-800/80 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap border border-white/20 shadow-md">
-             Mock GPS
-           </div>
-         )}
-      </div>
+      {/* Fake GPS Mock Indicator */}
+      {isMock && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-800/80 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap border border-white/20 shadow-md">
+          Mock GPS
+        </div>
+      )}
 
       {/* Primary HUD Layer */}
       <HUD playerLevel={trainer.level} xpProgress={trainer.progress} stardust={collection.stardust} />
@@ -201,6 +226,8 @@ const MapScreen: React.FC = () => {
         onOpenPokedex={() => setActiveOverlay('pokedex')}
         onOpenStorage={() => setActiveOverlay('storage')}
         onOpenInventory={() => setActiveOverlay('inventory')}
+        spawnedPokemon={spawnedPokemon}
+        seen={collection.seen}
       />
 
       {/* Overlays */}
@@ -208,9 +235,7 @@ const MapScreen: React.FC = () => {
         <PokedexScreen
           onClose={() => setActiveOverlay('none')}
           owned={collection.owned}
-          candies={collection.candies}
           seen={collection.seen}
-          onEvolve={collection.evolve}
         />
       )}
 

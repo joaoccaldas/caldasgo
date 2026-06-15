@@ -17,8 +17,11 @@ const StardustIcon: React.FC<{ className?: string }> = ({ className }) => (
 const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
   return (
     <>
-      {/* Top Left: Avatar Profile with circular Level Ring (authentic PoGo) */}
-      <div className="absolute top-12 left-4 z-[400] flex flex-col items-center pointer-events-auto">
+      {/* Top Left: Player Profile Badge */}
+      <div 
+        className="absolute left-4 z-[400] flex items-center pointer-events-auto"
+        style={{ top: 'calc(env(safe-area-inset-top, 16px) + 16px)' }}
+      >
         <div className="relative w-[72px] h-[72px]">
           {/* Circular XP progress ring */}
           <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 72 72">
@@ -54,7 +57,10 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
       </div>
 
       {/* Top Right: Compass & Weather */}
-      <div className="absolute top-12 right-4 z-[400] flex flex-col gap-3 pointer-events-auto items-end">
+      <div 
+        className="absolute right-4 z-[400] flex flex-col gap-3 pointer-events-auto items-end"
+        style={{ top: 'calc(env(safe-area-inset-top, 16px) + 16px)' }}
+      >
         {/* Compass */}
         <div className="w-12 h-12 bg-white/30 backdrop-blur rounded-full shadow-pogo-mid flex items-center justify-center border border-white/50 cursor-pointer hover:bg-white/40 transition-colors overflow-hidden">
           <img
@@ -75,7 +81,10 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
       </div>
 
       {/* Bottom Right: Field Research (Binoculars) */}
-      <div className="absolute bottom-[90px] right-4 z-[400] flex flex-col items-end pointer-events-auto">
+      <div 
+        className="absolute right-4 z-[400] flex flex-col items-end pointer-events-auto"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)' }}
+      >
         <div className="w-16 h-16 relative flex items-center justify-center cursor-pointer hover:scale-105 transition-transform">
            {/* Authentic orange gradient ring */}
            <div className="absolute inset-0 rounded-full border-[3px] border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))' }}></div>
@@ -87,8 +96,11 @@ const HUD: React.FC<HUDProps> = ({ playerLevel, xpProgress, stardust }) => {
         </div>
       </div>
 
-      {/* Top Center: Stardust currency pill (Moved here for better authenticity/balance) */}
-      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[400] flex flex-col pointer-events-auto">
+      {/* Top Center: Stardust currency pill */}
+      <div 
+        className="absolute left-1/2 -translate-x-1/2 z-[400] flex flex-col pointer-events-auto"
+        style={{ top: 'calc(env(safe-area-inset-top, 16px) + 16px)' }}
+      >
         <div className="bg-pogo-glass backdrop-blur-md rounded-pogo-pill shadow-[0_2px_8px_rgba(11,42,58,0.25)] border border-pogo-glass-border flex items-center gap-1 pl-1.5 pr-3 h-8">
           <StardustIcon className="w-[18px] h-[18px]" />
           <span className="font-display font-extrabold text-[13px] text-pogo-navy tracking-wide leading-none pt-[1px]">{stardust.toLocaleString()}</span>

@@ -3,10 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PokemonSprite from './PokemonSprite';
 import { COLORS } from '../theme';
 
+import type { SpawnedPokemon } from '../types';
+
 interface BottomNavProps {
   onOpenPokedex: () => void;
   onOpenInventory: () => void;
   onOpenStorage: () => void;
+  spawnedPokemon?: SpawnedPokemon[];
+  seen?: number[];
 }
 
 /** Filled Poké Ball glyph for the central main button. */
@@ -49,13 +53,13 @@ interface FanButton {
   y: number;
 }
 
-// Arc above the central button, 150° spread / 108px radius.
+// Authentic radial spread, taking over the bottom half of the screen
 const FAN_BUTTONS: FanButton[] = [
-  { key: 'pokedex', label: 'POKÉDEX', icon: <PokedexFillIcon />, x: -104, y: 28 },
-  { key: 'items', label: 'ITEMS', icon: <BagFillIcon />, x: -65, y: 86 },
-  { key: 'storage', label: 'POKÉMON', icon: <PokeBallIcon />, x: 0, y: 108 },
-  { key: 'shop', label: 'SHOP', icon: <ShopFillIcon />, x: 65, y: 86 },
-  { key: 'battle', label: 'BATTLE', icon: <BattleFillIcon />, x: 104, y: 28, notify: true },
+  { key: 'pokedex', label: 'POKÉDEX', icon: <PokedexFillIcon />, x: -140, y: 70 },
+  { key: 'items', label: 'ITEMS', icon: <BagFillIcon />, x: -85, y: 170 },
+  { key: 'storage', label: 'POKÉMON', icon: <PokeBallIcon />, x: 0, y: 210 },
+  { key: 'shop', label: 'SHOP', icon: <ShopFillIcon />, x: 85, y: 170 },
+  { key: 'battle', label: 'BATTLE', icon: <BattleFillIcon />, x: 140, y: 70, notify: true },
 ];
 
 const FanItem: React.FC<{ btn: FanButton; delay: number; onClick?: () => void }> = ({ btn, delay, onClick }) => (
@@ -69,7 +73,7 @@ const FanItem: React.FC<{ btn: FanButton; delay: number; onClick?: () => void }>
   >
     <button
       onClick={onClick}
-      className="relative w-16 h-16 rounded-full bg-pogo-glass backdrop-blur flex items-center justify-center shadow-pogo-mid active:scale-95 transition-transform border border-pogo-glass-border"
+      className="relative w-[72px] h-[72px] rounded-full bg-pogo-glass backdrop-blur flex items-center justify-center shadow-pogo-high active:scale-95 transition-transform border border-pogo-glass-border"
     >
       {btn.icon}
       {btn.notify && <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-pogo-red border-2 border-white" />}
@@ -83,7 +87,7 @@ const FanItem: React.FC<{ btn: FanButton; delay: number; onClick?: () => void }>
  * (left) and Buddy (right) chips flanking a large central Poké Ball button.
  * Tapping the ball fans out Pokédex / Items / Pokémon / Shop / Battle above it.
  */
-const BottomNav: React.FC<BottomNavProps> = ({ onOpenPokedex, onOpenInventory, onOpenStorage }) => {
+const BottomNav: React.FC<BottomNavProps> = ({ onOpenPokedex, onOpenInventory, onOpenStorage, spawnedPokemon = [], seen = [] }) => {
   const [fanOpen, setFanOpen] = useState(false);
 
   const handlers: Record<FanButton['key'], (() => void) | undefined> = {
@@ -104,7 +108,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenPokedex, onOpenInventory, o
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 z-[550] bg-black/40"
+            className="absolute inset-0 z-[600] bg-black/50 backdrop-blur-md pointer-events-auto"
             onClick={() => setFanOpen(false)}
           >
             <div className="absolute left-1/2 bottom-[104px] -translate-x-1/2 w-0 h-0">
@@ -133,10 +137,23 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenPokedex, onOpenInventory, o
         <div
           className="relative h-[72px] bg-pogo-glass backdrop-blur-md rounded-t-pogo-xl shadow-pogo-high border-t border-pogo-glass-border flex items-center justify-between px-8 pointer-events-auto"
         >
-          {/* Nearby radar chip */}
-          <div className="w-12 h-12 rounded-full bg-white shadow-pogo-low border border-slate-100 flex items-center justify-center gap-0.5 overflow-hidden relative px-1">
-            <div className="w-5 h-5 opacity-90"><PokemonSprite id={1} name="nearby" className="w-full h-full object-contain" /></div>
-            <div className="w-5 h-5 opacity-70"><PokemonSprite id={4} name="nearby" className="w-full h-full object-contain" /></div>
+          {/* Nearby radar chip - Dynamic based on actual spawns */}
+          <div className="w-12 h-12 rounded-full bg-white shadow-pogo-low border border-slate-100 flex items-center justify-center gap-[1px] overflow-hidden relative px-1">
+            {spawnedPokemon.slice(0, 3).map((spawn, i) => {
+              const isSeen = seen.includes(spawn.speciesId);
+              return (
+                <div key={spawn.id} className="w-[18px] h-[18px] flex-shrink-0" style={{ opacity: 1 - (i * 0.15), filter: isSeen ? 'none' : 'brightness(0)' }}>
+                  <PokemonSprite 
+                    id={spawn.speciesId} 
+                    name="nearby" 
+                    className="w-full h-full object-contain" 
+                  />
+                </div>
+              );
+            })}
+            {spawnedPokemon.length === 0 && (
+              <span className="text-[10px] text-slate-400 font-bold">...</span>
+            )}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-pogo-cyan/25 to-transparent w-[200%] animate-[slide_3s_infinite]" />
           </div>
 
@@ -154,7 +171,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ onOpenPokedex, onOpenInventory, o
           onClick={() => setFanOpen((v) => !v)}
           whileTap={{ rotate: [0, -12, 10, -6, 0], scale: 0.94 }}
           transition={{ duration: 0.45 }}
-          className="absolute left-1/2 -translate-x-1/2 -top-7 w-[84px] h-[84px] rounded-full bg-white shadow-pogo-high border-4 border-white flex items-center justify-center pointer-events-auto"
+          className="absolute left-1/2 -translate-x-1/2 -top-7 w-[84px] h-[84px] rounded-full bg-white shadow-pogo-high border-4 border-white flex items-center justify-center pointer-events-auto z-[610]"
           style={{ boxShadow: '0 6px 18px rgba(11,42,58,0.4)' }}
           aria-label="Open menu"
         >
