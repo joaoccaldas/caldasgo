@@ -22,8 +22,23 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
   const [message, setMessage] = useState('');
   const [isCaught, setIsCaught] = useState(false);
   const [berryActive, setBerryActive] = useState(false);
+  const [isAttacking, setIsAttacking] = useState(false);
+  const [glitchMode, setGlitchMode] = useState<number>(0);
   
   const [throwText, setThrowText] = useState<{text: string, color: string} | null>(null);
+
+  // Chaotic random attacks
+  useEffect(() => {
+    if (catching || isCaught) return;
+    const interval = setInterval(() => {
+      if (Math.random() > 0.6) {
+        setIsAttacking(true);
+        setGlitchMode(Math.floor(Math.random() * 3));
+        setTimeout(() => setIsAttacking(false), 1000);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [catching, isCaught]);
 
   // Catch Ring State
   const [ringScale, setRingScale] = useState(1);
@@ -105,7 +120,9 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="absolute inset-0 z-[800] overflow-hidden bg-sky-100 flex flex-col"
+      className={`absolute inset-0 z-[800] overflow-hidden flex flex-col transition-all duration-75 ${
+        isAttacking ? (glitchMode === 0 ? 'bg-red-500 invert' : glitchMode === 1 ? 'bg-black hue-rotate-180 scale-110 blur-sm' : 'bg-green-500 skew-y-12') : 'bg-sky-100'
+      }`}
     >
       {/* 1:1 Authentic Encounter Background */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
@@ -170,15 +187,19 @@ const EncounterScreen: React.FC<EncounterScreenProps> = ({ spawn, onClose, onCau
               <div className="absolute bottom-2 w-40 h-10 bg-black/30 rounded-[100%] blur-md"></div>
 
               <motion.div
-                animate={{ translateY: [-10, 10] }}
-                transition={{ repeat: Infinity, duration: 2, repeatType: "mirror", ease: "easeInOut" }}
+                animate={{ 
+                  translateY: isAttacking ? [-50, 50, -50] : [-10, 10],
+                  scale: isAttacking ? [1, 2, 0.5, 1] : 1,
+                  rotate: isAttacking ? [0, 180, 360] : 0,
+                }}
+                transition={{ repeat: Infinity, duration: isAttacking ? 0.2 : 2, repeatType: "mirror", ease: "easeInOut" }}
                 className="w-[120%] h-[120%] z-10"
               >
                 <PokemonSprite
-                  id={spawn.speciesId}
+                  id={isAttacking && glitchMode === 2 ? 5 : spawn.speciesId} // Occasionally turns into MissingNo
                   name={spawn.species.name}
                   variant="artwork"
-                  className="w-full h-full object-contain drop-shadow-2xl"
+                  className={`w-full h-full object-contain drop-shadow-2xl ${isAttacking ? 'mix-blend-exclusion' : ''}`}
                 />
               </motion.div>
 

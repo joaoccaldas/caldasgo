@@ -11,7 +11,8 @@ const FAST_MOVE: Record<PokemonType, string> = {
   grass: 'Vine Whip', ice: 'Frost Breath', fighting: 'Counter', poison: 'Poison Jab',
   ground: 'Mud Shot', flying: 'Wing Attack', psychic: 'Confusion', bug: 'Bug Bite',
   rock: 'Rock Throw', ghost: 'Shadow Claw', dragon: 'Dragon Breath', dark: 'Snarl',
-  steel: 'Metal Claw', fairy: 'Charm',
+  steel: 'Metal Claw', fairy: 'Charm', banana: 'Peel Slip', glitch: 'Corrupt Data',
+  cardboard: 'Paper Cut', slime: 'Ooze Strike'
 };
 
 const CHARGED_MOVE: Record<PokemonType, string> = {
@@ -19,7 +20,8 @@ const CHARGED_MOVE: Record<PokemonType, string> = {
   grass: 'Solar Beam', ice: 'Ice Beam', fighting: 'Dynamic Punch', poison: 'Sludge Bomb',
   ground: 'Earthquake', flying: 'Aerial Ace', psychic: 'Psychic', bug: 'X-Scissor',
   rock: 'Rock Slide', ghost: 'Shadow Ball', dragon: 'Dragon Claw', dark: 'Crunch',
-  steel: 'Flash Cannon', fairy: 'Dazzling Gleam',
+  steel: 'Flash Cannon', fairy: 'Dazzling Gleam', banana: 'Banana Split', glitch: 'Fatal Exception',
+  cardboard: 'Box Crush', slime: 'Toxic Sludge'
 };
 
 /**

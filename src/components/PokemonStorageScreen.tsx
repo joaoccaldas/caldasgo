@@ -171,16 +171,22 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                 <button
                   key={p.uid}
                   onClick={() => setSelectedUid(p.uid)}
-                  style={{ background: `linear-gradient(to bottom, ${TYPE_COLORS[species.types[0]]}26 0%, #ffffff 72%)` }}
-                  className="relative aspect-square border border-slate-200 rounded-lg shadow-sm flex flex-col items-center overflow-hidden active:scale-95 transition-transform p-1"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${TYPE_COLORS[species.types[0]]} 0%, #ffffff 50%, ${TYPE_COLORS[species.types[0]]} 100%)`,
+                    border: '4px solid #FDE047',
+                    boxShadow: 'inset 0 0 10px rgba(255,255,255,0.8), 0 4px 6px rgba(0,0,0,0.3)',
+                  }}
+                  className="relative aspect-[3/4] rounded-sm flex flex-col items-center overflow-hidden active:scale-95 transition-transform p-1"
                 >
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/holographic.png')] opacity-30 mix-blend-color-burn pointer-events-none" />
                   {p.favorite && (
                     <StarIcon filled className="absolute top-1 right-1 w-3.5 h-3.5 drop-shadow-sm z-10" />
                   )}
                   {/* CP on its own top strip so it never collides with the sprite */}
-                  <span className="text-[11px] font-black text-slate-600 tracking-wide leading-none pt-1 shrink-0">
-                    CP {p.cp}
-                  </span>
+                  <div className="w-full bg-black/80 text-white font-mono text-[9px] px-1 py-0.5 flex justify-between tracking-tighter border-b-2 border-yellow-300 z-10">
+                    <span>{species.name.toUpperCase()}</span>
+                    <span className="text-red-400">HP {Math.floor(p.cp / 10)}</span>
+                  </div>
                   <div className="flex-1 min-h-0 w-full flex items-center justify-center relative">
                     {p.isShiny && (
                       <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none opacity-40">
@@ -191,7 +197,7 @@ const PokemonStorageScreen: React.FC<PokemonStorageScreenProps> = ({ onClose, ow
                       id={species.id}
                       name={species.name}
                       shiny={!!p.isShiny}
-                      className="max-h-full max-w-full object-contain drop-shadow-md relative z-10"
+                      className="max-h-[80%] max-w-[90%] object-cover border-2 border-slate-800 relative z-10 bg-white"
                     />
                   </div>
                   <div className="w-full px-2 pb-1 pt-0.5">

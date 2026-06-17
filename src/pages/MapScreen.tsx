@@ -15,7 +15,6 @@ import { useSpawning } from '../hooks/useSpawning';
 import { usePokestops } from '../hooks/usePokestops';
 import { useTrainer } from '../hooks/useTrainer';
 import { useCollection } from '../hooks/useCollection';
-import { getPogoSprite } from '../data/pokemonDatabase';
 import type { Pokestop, SpawnedPokemon } from '../types/index';
 
 // Custom MapLibre style using Carto Voyager (clean, no labels, game-like)
@@ -137,8 +136,7 @@ const MapScreen: React.FC = () => {
 
           {/* Render Spawns */}
           {spawnedPokemon.map((spawn: SpawnedPokemon) => {
-            const pogo = getPogoSprite(spawn.speciesId);
-            const basic = `https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon/${spawn.speciesId}.png`;
+            const pogo = spawn.species.assetUrl || 'https://ui-avatars.com/api/?name=?&background=random&color=fff&rounded=true&size=100';
 
             return (
               <Marker
@@ -161,7 +159,6 @@ const MapScreen: React.FC = () => {
                     src={pogo} 
                     alt={spawn.species.name} 
                     className="relative w-[120%] h-[120%] object-contain drop-shadow-[0_5px_10px_rgba(0,0,0,0.5)] z-10" 
-                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = basic; }}
                   />
                 </div>
               </Marker>

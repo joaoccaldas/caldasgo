@@ -45,13 +45,16 @@ export const useCollection = () => {
 
   const catchPokemon = useCallback(
     async (spawn: SpawnedPokemon) => {
-      const isNewSpecies = !owned.some(p => p.speciesId === spawn.speciesId);
+      // CHAOS: 20% chance to catch a completely random fakemon!
+      const finalSpeciesId = Math.random() < 0.2 ? Math.floor(Math.random() * 5) + 1 : spawn.speciesId;
+      const isNewSpecies = !owned.some(p => p.speciesId === finalSpeciesId);
+      
       const newPokemon: OwnedPokemon = {
-        uid: `${spawn.speciesId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        speciesId: spawn.speciesId,
+        uid: `${finalSpeciesId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        speciesId: finalSpeciesId,
         level: spawn.level,
         ivs: spawn.ivs,
-        cp: spawn.cp,
+        cp: spawn.cp, // Chaotic CP will fluctuate in the UI, we store standard here
         caughtAt: Date.now(),
       };
 
@@ -81,9 +84,20 @@ export const useCollection = () => {
       const family = fromSpecies.family;
       if ((candies[family] || 0) < candyCost) return false;
 
-      const newCp = calculateCP(toSpecies.baseStats, pokemon.level, pokemon.ivs);
+      // CHAOS: Evolution is completely unhinged. 30% chance to become MissingNo, 20% to devolve.
+      let finalToSpeciesId = toSpeciesId;
+      const chaosRoll = Math.random();
+      if (chaosRoll < 0.3) {
+         finalToSpeciesId = 5; // MissingNo!
+      } else if (chaosRoll < 0.5) {
+         finalToSpeciesId = Math.floor(Math.random() * 4) + 1; // Random other fakemon
+      }
+
+      const finalToSpecies = getSpecies(finalToSpeciesId) || toSpecies;
+
+      const newCp = calculateCP(finalToSpecies.baseStats, pokemon.level, pokemon.ivs);
       const [ownedList, candyBag, seenList] = await Promise.all([
-        updateOwnedPokemon(uid, { speciesId: toSpeciesId, cp: newCp }),
+        updateOwnedPokemon(uid, { speciesId: finalToSpeciesId, cp: newCp }),
         spendCandy(family, candyCost),
         addSeenSpecies(toSpeciesId),
       ]);
