@@ -1,7 +1,26 @@
-IyBDYWxkYXNHTwoKKipSZWFjdCArIFR5cGVTY3JpcHQgKyBWaXRlIFRlbXBs
-YXRlKioKCkEgc3RhcnRlciB0ZW1wbGF0ZSBmb3IgYnVpbGRpbmcgbW9kZXJu
-IHdlYiBhcHBsaWNhdGlvbnMgd2l0aCBSZWFjdCwgVHlwZVNjcmlwdCwgYW5k
-IFZpdGUuIEluY2x1ZGVzIGVzbGludCBjb25maWd1cmF0aW9uIGFuZCBtb2Rl
-cm4gZGV2ZWxvcG1lbnQgdG9vbGluZy4KCiMjIFN0YXR1cwpUZW1wbGF0ZS4g
-VXNlZCBhcyBhIGZvdW5kYXRpb24gZm9yIHdlYiBwcm9qZWN0cy4KCioiQnVpbHQg
-YnkgSm/Do28gQ2FsZGFzIHwgam9hb2NjYWxkYXNAZ21haWwuY29tIio=
+# CaldasGO
+
+**A React + TypeScript + Vite starter template.** A clean foundation for spinning up modern web apps quickly — sensible defaults, fast HMR, and linting already wired up.
+
+## What's inside
+
+- React 18 + TypeScript
+- Vite build tooling with hot module replacement
+- ESLint configuration
+- Ready-to-extend project structure
+
+## Getting started
+
+```bash
+npm install
+npm run dev      # start the dev server
+npm run build    # production build
+```
+
+## Status
+
+Template — used as the starting point for other web projects.
+
+---
+
+Built by [João Caldas](https://github.com/joaoccaldas).
