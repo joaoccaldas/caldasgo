@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getSpecies } from '../data/pokemonDatabase';
 
 const FALLBACK_ICON = 'https://ui-avatars.com/api/?name=?&background=random&color=fff&rounded=true&size=100';
@@ -12,29 +12,23 @@ interface PokemonSpriteProps {
 }
 
 /**
- * Renders the hilariously bad Fake-Mon sprites.
+ * Renders the intentionally rough Fake-Mon sprites with a stable fallback.
  */
 const PokemonSprite: React.FC<PokemonSpriteProps> = ({ id, name, className }) => {
   const species = getSpecies(id);
   const assetUrl = species?.assetUrl || FALLBACK_ICON;
-  
-  // No shiny variants for the bootleg cards, just a chaotic fallback.
-  const sources = [assetUrl, FALLBACK_ICON];
-
-  const [srcIndex, setSrcIndex] = useState(0);
-
-  useEffect(() => {
-    setSrcIndex(0);
-  }, [id]);
+  const [failedAssetUrl, setFailedAssetUrl] = useState<string | null>(null);
+  const src = failedAssetUrl === assetUrl ? FALLBACK_ICON : assetUrl;
 
   return (
     <img
-      src={sources[srcIndex]}
+      key={assetUrl}
+      src={src}
       alt={name}
       className={className}
       onError={() => {
-        if (srcIndex < sources.length - 1) {
-          setSrcIndex(srcIndex + 1);
+        if (src !== FALLBACK_ICON) {
+          setFailedAssetUrl(assetUrl);
         }
       }}
     />

@@ -39,7 +39,7 @@ const SafetyScreen: React.FC<SafetyScreenProps> = ({ onAccept }) => {
           Stay Aware of Your Surroundings
         </h2>
         <p className="text-[#6a8483] text-center font-medium leading-relaxed mb-8 px-2">
-          Do not enter dangerous areas while playing Pokémon GO.
+          Do not enter dangerous areas while playing CaldasGO.
         </p>
 
         <motion.button
