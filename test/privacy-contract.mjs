@@ -7,7 +7,19 @@ const safety = readFileSync('src/components/SafetyScreen.tsx', 'utf8');
 
 assert.match(
   app,
-  /stage\s*===\s*['"]playing['"]\s*&&\s*<MapScreen\s*\/>/,
+  /const MapScreen\s*=\s*lazy\(\(\)\s*=>\s*import\(['"]\.\/pages\/MapScreen['"]\)\)/,
+  'MapScreen must remain lazy-loaded so map/geolocation code is not in the initial splash path',
+);
+
+assert.doesNotMatch(
+  app,
+  /import\s+MapScreen\s+from/,
+  'MapScreen must not return to a static eager import',
+);
+
+assert.match(
+  app,
+  /stage\s*===\s*['"]playing['"]\s*&&\s*\([\s\S]*?<MapScreen\s*\/>/,
   'MapScreen/geolocation must mount only after the playing stage begins',
 );
 
