@@ -12,6 +12,12 @@ interface PokestopScreenProps {
 
 const ITEM_SPRITE_BASE = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/items/';
 
+const rewardBurstOffset = (index: number, salt: number) => {
+  const x = ((index * 73 + salt * 41) % 181) - 90;
+  const y = -120 - ((index * 47 + salt * 29) % 101);
+  return { x, y };
+};
+
 const PokestopScreen: React.FC<PokestopScreenProps> = ({ pokestop, isSpinable, onClose, onSpin }) => {
   const [spinning, setSpinning] = useState(false);
   const [rewards, setRewards] = useState<{ pokeballs: number; razzBerries: number; xp: number } | null>(null);
@@ -114,7 +120,7 @@ const PokestopScreen: React.FC<PokestopScreenProps> = ({ pokestop, isSpinable, o
                 <motion.div
                   key={`pb-${i}`}
                   initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                  animate={{ opacity: [0, 1, 1, 0], scale: [0, 1.2, 1, 0.8], x: (Math.random() - 0.5) * 180, y: -120 - Math.random() * 100 }}
+                  animate={{ opacity: [0, 1, 1, 0], scale: [0, 1.2, 1, 0.8], ...rewardBurstOffset(i, 1) }}
                   transition={{ duration: 1.6, delay: i * 0.15, ease: "easeOut" }}
                   className="absolute w-16 h-16 rounded-full bg-pink-400/90 border-2 border-white shadow-xl flex items-center justify-center backdrop-blur-sm"
                 >
@@ -125,7 +131,7 @@ const PokestopScreen: React.FC<PokestopScreenProps> = ({ pokestop, isSpinable, o
                 <motion.div
                   key={`rb-${i}`}
                   initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                  animate={{ opacity: [0, 1, 1, 0], scale: [0, 1.2, 1, 0.8], x: (Math.random() - 0.5) * 180, y: -120 - Math.random() * 100 }}
+                  animate={{ opacity: [0, 1, 1, 0], scale: [0, 1.2, 1, 0.8], ...rewardBurstOffset(i, 2) }}
                   transition={{ duration: 1.6, delay: (rewards.pokeballs + i) * 0.15, ease: "easeOut" }}
                   className="absolute w-16 h-16 rounded-full bg-yellow-400/90 border-2 border-white shadow-xl flex items-center justify-center backdrop-blur-sm"
                 >
