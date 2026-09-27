@@ -12,7 +12,7 @@ function App() {
 
   return (
     <div className="h-full w-full flex flex-col bg-slate-900 text-white font-sans overflow-hidden relative">
-      <MapScreen />
+      {stage === 'playing' && <MapScreen />}
       <AnimatePresence>
         {stage === 'splash' && <SplashScreen key="splash" onEnter={() => setStage('safety')} />}
         {stage === 'safety' && <SafetyScreen key="safety" onAccept={() => setStage('playing')} />}
